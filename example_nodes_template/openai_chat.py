@@ -1,3 +1,4 @@
+from typing import Any
 from griptape_nodes.exe_types.node_types import ControlNode
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 import openai
@@ -6,11 +7,15 @@ from griptape.utils import Stream
 from griptape.events import TextChunkEvent
 
 class OpenAIChat(ControlNode):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, name: str, metadata: dict[str, Any] | None = None, **kwargs) -> None:
+        node_metadata = {
+            "category": "ControlNodes",
+            "description": "An example node with dependencies"
+        }
+        if metadata:
+            node_metadata.update(metadata)
+        super().__init__(name=name, metadata=node_metadata, **kwargs)
 
-        self.category = "ControlNodes"
-        self.description = "An example node with dependencies"
         self.add_parameter(
             Parameter(
                 name="prompt",
@@ -33,7 +38,7 @@ class OpenAIChat(ControlNode):
         )
 
     # This node makes a call to OpenAI, so it has a dependency. We have to define that method to properly catch it.
-    def validate_node(self) -> list[Exception] | None:
+    def validate_before_node_run(self) -> list[Exception] | None:
         # All env values are stored in the SecretsManager. Check if they exist using this method.
         exceptions = []
         try:
@@ -56,10 +61,9 @@ class OpenAIChat(ControlNode):
         prompt = self.parameter_values["prompt"]
         # Use a griptape agent to run the structure! 
         agent = Agent(stream=True)
-        full_output = ""
+        self.parameter_output_values["output"] = ""
         # Running with the Stream Util allows you to stream your responses to the node!
         for artifact in Stream(agent, event_types=[TextChunkEvent]).run(prompt):
-            full_output += artifact.value
-        self.parameter_output_values["output"] = full_output
+            self.append_value_to_parameter("output", artifact.value)
        
         

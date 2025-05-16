@@ -1,19 +1,21 @@
-from re import S
 from typing import Any
 from griptape_nodes.exe_types.node_types import ControlNode
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 
 # Control Nodes import the ControlNode class.
 class CreateIntroduction(ControlNode):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, name: str, metadata: dict[str, Any] | None = None, **kwargs) -> None:
+        node_metadata = {
+            "category": "ControlNodes",
+            "description": "Create an introduction."
+        }
+        if metadata:
+            node_metadata.update(metadata)
+        super().__init__(name=name, metadata=node_metadata, **kwargs)
 
-        self.category = "ControlNodes"
-        self.description = "Create an introduction."
-            
         self.add_parameter(
             Parameter(
-                name="full name",
+                name="full_name",
                 input_types=["str"],
                 type="str",
                 output_type="str",
@@ -45,7 +47,7 @@ class CreateIntroduction(ControlNode):
 
     def process(self) -> None:
         # All of the current values of a parameter are stored on self.parameter_values (If they have an INPUT or PROPERTY)
-        full_name = self.parameter_values["full name"]
+        full_name = self.parameter_values["full_name"]
         age = self.parameter_values["age"]
         # All output values should be set in self.parameter_output_values. 
         introduction= f"Hey! My name is {full_name}, and I'm {age} years old."

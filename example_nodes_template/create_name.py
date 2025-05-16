@@ -1,14 +1,17 @@
-from re import S
+from typing import Any
 from griptape_nodes.exe_types.node_types import DataNode
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 
 
 class CreateName(DataNode):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-
-        self.category = "DataNodes"
-        self.description = "An example node with dependencies"
+    def __init__(self, name: str, metadata: dict[str, Any] | None = None, **kwargs) -> None:
+        node_metadata = {
+            "category": "DataNodes",
+            "description": "An example node with dependencies"
+        }
+        if metadata:
+            node_metadata.update(metadata)
+        super().__init__(name=name, metadata=node_metadata, **kwargs)
 
         # Converters should take one positional argument of any type, and can return anything!
         def capitalize_name(value:str) -> str:
@@ -18,7 +21,7 @@ class CreateName(DataNode):
             
         self.add_parameter(
             Parameter(
-                name="first name",
+                name="first_name",
                 input_types=["str"],
                 type="str",
                 allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY},
@@ -32,7 +35,7 @@ class CreateName(DataNode):
         )
         self.add_parameter(
             Parameter(
-                name="last name",
+                name="last_name",
                 output_type="str",
                 type="str",
                 default_value="Smith",
@@ -43,7 +46,7 @@ class CreateName(DataNode):
         )
         self.add_parameter(
             Parameter(
-                name="full name",
+                name="full_name",
                 output_type="str",
                 tooltip="The full name of the user",
                 allowed_modes={ParameterMode.OUTPUT}
@@ -53,9 +56,9 @@ class CreateName(DataNode):
 
     def process(self) -> None:
         # All of the current values of a parameter are stored on self.parameter_values (If they have an INPUT or PROPERTY)
-        first_name = self.parameter_values["first name"]
-        last_name = self.parameter_values["last name"]
+        first_name = self.parameter_values["first_name"]
+        last_name = self.parameter_values["last_name"]
         # All output values should be set in self.parameter_output_values. 
         full_name = f"{first_name} {last_name}"
-        self.parameter_output_values["full name"] = full_name
+        self.parameter_output_values["full_name"] = full_name
         # The node is complete!

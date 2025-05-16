@@ -1,4 +1,4 @@
-from re import S
+from typing import Any
 from griptape_nodes.exe_types.node_types import DataNode
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.traits.minmax import MinMax
@@ -6,11 +6,15 @@ from griptape_nodes.traits.clamp import Clamp
 
 
 class Age(DataNode):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, name: str, metadata: dict[str, Any] | None = None, **kwargs) -> None:
+        node_metadata = {
+            "category": "DataNodes",
+            "description": "Age Node"
+        }
+        if metadata:
+            node_metadata.update(metadata)
+        super().__init__(name=name, metadata=node_metadata, **kwargs)
 
-        self.category = "DataNodes"
-        self.description = "Age Node"
         self.add_parameter(
             Parameter(
                 name="age",

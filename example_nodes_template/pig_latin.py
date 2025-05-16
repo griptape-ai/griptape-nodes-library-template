@@ -1,4 +1,3 @@
-from re import S
 import re
 from typing import Any
 from griptape_nodes.exe_types.node_types import ControlNode
@@ -6,12 +5,15 @@ from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 
 # Control Nodes import the ControlNode class.
 class ConvertToPigLatin(ControlNode):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, name: str, metadata: dict[str, Any] | None = None, **kwargs) -> None:
+        node_metadata = {
+            "category": "ControlNodes",
+            "description": "Change to pig latin"
+        }
+        if metadata:
+            node_metadata.update(metadata)
+        super().__init__(name=name, metadata=node_metadata, **kwargs)
 
-        self.category = "ControlNodes"
-        self.description = "Change to pig latin"
-            
         self.add_parameter(
             Parameter(
                 name="input",
@@ -25,7 +27,7 @@ class ConvertToPigLatin(ControlNode):
         )
         self.add_parameter(
             Parameter(
-                name="pig latin",
+                name="pig_latin",
                 output_type="str",
                 type="str",
                 tooltip="The last name of the user",
@@ -38,9 +40,9 @@ class ConvertToPigLatin(ControlNode):
 
     def process(self) -> None:
         # All of the current values of a parameter are stored on self.parameter_values (If they have an INPUT or PROPERTY)
-        input = self.parameter_values["input"]
-        pig_latin = to_pig_latin(input)
-        self.parameter_output_values["pig latin"] = pig_latin
+        input_val = self.parameter_values["input"]
+        pig_latin = to_pig_latin(input_val)
+        self.parameter_output_values["pig_latin"] = pig_latin
         # The node is complete!
 
 
