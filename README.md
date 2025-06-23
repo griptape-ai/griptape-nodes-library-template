@@ -43,13 +43,13 @@ Each node is it's own python file, written in pure python code!
 
 To create nodes for your library, please take a look at our provided examples in the `example_nodes_template` library and follow the steps below.
 
-[Example Data Node](example_nodes_template/data_node.py)
+[Example Data Node](example_nodes_template/create_name.py)
 
 
-[Example Control Node](example_nodes_template/control_node.py)
+[Example Control Node](example_nodes_template/create_introduction.py)
 
 
-[Example Node with Dependencies](example_nodes_template/dependency_node.py)
+[Example Node with Dependencies](example_nodes_template/openai_chat.py)
 
 
 ## Define a file with your node name
