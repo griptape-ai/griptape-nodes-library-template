@@ -43,13 +43,12 @@ Each node is it's own python file, written in pure python code!
 
 To create nodes for your library, please take a look at our provided examples in the `example_nodes_template` library and follow the steps below.
 
-[Example Data Node](example_nodes_template/data_node.py)
-
-
-[Example Control Node](example_nodes_template/control_node.py)
-
-
-[Example Node with Dependencies](example_nodes_template/dependency_node.py)
+**Example Nodes:**
+- [Age Node (DataNode)](example_nodes_template/age_node.py) - Simple data processing node with numeric input
+- [Create Introduction (ControlNode)](example_nodes_template/create_introduction.py) - Control flow node for text processing  
+- [Create Name Node](example_nodes_template/create_name.py) - Basic string manipulation node
+- [OpenAI Chat (ControlNode with Dependencies)](example_nodes_template/openai_chat.py) - Advanced node with external API integration
+- [Pig Latin Converter](example_nodes_template/pig_latin.py) - Text transformation example
 
 
 ## 📝 Creating Your Nodes
