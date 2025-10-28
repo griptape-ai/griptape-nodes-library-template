@@ -10,18 +10,18 @@ Once you've created your own repository from this template, you need to pull it 
 
 > **Hint**: It's recommended to clone this repository into your Griptape Nodes workspace directory. You can find your workspace directory by running:
 > ```bash
-> gtn config | grep workspace_directory
+> gtn config show workspace_directory
 > ```
 > Here's a quick way to navigate to your workspace directory:
 > ```bash
-> cd $(gtn config | grep workspace_directory | cut -d'"' -f4)
+> cd `gtn config show workspace_directory`
 > ```
 > Finally, clone the repository:
 > ```bash
 > git clone https://github.com/{{ .RepoName }}.git
 > ```
 
-## Rename Directory
+## 🏗️ Setup Your Library
 
 To create your node library and make it importable by other users, please follow the steps below.
 
@@ -43,6 +43,17 @@ Each node is it's own python file, written in pure python code!
 
 To create nodes for your library, please take a look at our provided examples in the `example_nodes_template` library and follow the steps below.
 
+**Example Nodes:**
+ [Age Node (DataNode)](example_nodes_template/age_node.py) - Simple data processing node with numeric input
+- [Create Introduction (ControlNode)](example_nodes_template/create_introduction.py) - Control flow node for text processing  
+- [Create Name Node](example_nodes_template/create_name.py) - Basic string manipulation node
+- [OpenAI Chat (ControlNode with Dependencies)](example_nodes_template/openai_chat.py) - Advanced node with external API integration
+- [Pig Latin -Converter](example_nodes_template/pig_latin.py) - Text transformation example
+
+
+## 📝 Creating Your Nodes
+
+### Define a file with your node name
 [Example Data Node](example_nodes_template/create_name.py)
 
 
@@ -55,7 +66,7 @@ To create nodes for your library, please take a look at our provided examples in
 ## Define a file with your node name
 Define a `<your-node-name>.py` file in your `<your-library-name>` directory. 
 
-## Define the Node Class
+### Define the Node Class
 There are two different types of Nodes that you could choose to define.
 
 1. **ControlNode**
@@ -80,7 +91,7 @@ class <YourNodeName>(DataNode):
     pass
 ```
 
-## Initialize your Node and define your Parameters
+### Initialize your Node and define your Parameters
 
 Parameters are fields on the node that can be connected to other nodes or set by the user. 
 Parameters have many fields that can be configured for their desired behavior. 
@@ -106,7 +117,7 @@ Only a couple of the fields are mandatory. The rest are optional.
 13. converters: `list[Callable[[Any], Any]]` *OPTIONAL* Modifies the parameter value after being set if needed.
 14. validators: `list[Callable[[Parameter, Any], None]]` *OPTIONAL* Validates that the value on the parameter is correct.
 
-## Define Node Method
+### Define Node Method
 
 Nodes have one absolute method that *absolutely* (haha) must be defined.
 This is the method that is called by the node at runtime when a node executes. 
@@ -241,79 +252,352 @@ def after_outgoing_connection_removed(
 ```
 
 
-## Add Node to Library
-In order to add a node to a library, you must configure your JSON file. This will keep track of all of the nodes in your library and allow them to be loaded on runtime!
+## 📋 Library Configuration
 
-## Create your library as a JSON file. This will be copied and imported into the engine at runtime.
+### Create your library JSON file
+This configuration file defines your library metadata, dependencies, and nodes. It will be loaded by the Griptape Nodes engine at runtime.
 
 ```
 {
-    # Information about your library
     "name": "<Your-Library-Name>",
-    "library_schema_version": "0.1.0",
+    "library_schema_version": "0.3.0",
     "metadata": {
         "author": "<Your-Name>",
         "description": "<Your Description>",
         "library_version": "0.1.0",
-        "engine_version": "0.1.0",
+        "engine_version": "0.60.0",
         "tags": [
             "Griptape",
-            "AI"
-        ]
+            "AI",
+            "<Your-Category>"
+        ],
+        "dependencies": {
+            "pip_dependencies": [
+                // Add any Python packages your nodes require
+                // "requests>=2.25.0",
+                // "pillow>=8.0.0"
+            ]
+        }
     },
-    # Categories define different sections that you can organize your node into. These are UI hints that group how your nodes will be displayed within your library.
+    "settings": [
+        {
+            "description": "API keys required by nodes in this library",
+            "category": "app_events.on_app_initialization_complete",
+            "contents": {
+                "secrets_to_register": [
+                    // Add any API keys your nodes need
+                    // "YOUR_API_KEY"
+                ]
+            }
+        }
+    ],
     "categories": [
         {
-            # The ID of your category
-            "Category1": {
-                # These are all UI hints for the Editor
-                "color": "border-red-500",
-                "title": "Category1",
-                "description": "<Your Description>",
-                "icon": "Scale"
+            "<your-category-id>": {
+                "color": "border-blue-500",
+                "title": "<Your Category>",
+                "description": "<Category Description>",
+                "icon": "Folder"
             }
-        },
+        }
     ],
-    # What nodes exist in this library?
     "nodes": [
-        {   
-            # The name of the class you defined in your <your-node-name>.py
+        {
             "class_name": "<YourNodeName>",
-            # The relative file path to your node.
             "file_path": "<your-library-name>/<your-node-name>.py",
             "metadata": {
-                # What category should this node be displayed in?
-                "category": "Category1",
-                "description": "<Your Description>",
-                # The name you'd like displayed on Griptape Nodes.
-                "display_name": "<Your Node Name>"
+                "category": "<your-category-id>",
+                "description": "<Node Description>",
+                "display_name": "<Your Node Display Name>"
             }
         }
     ]
 }
 ```
 
-## Add your library to your installed Engine! 
+### Key Configuration Features
 
-If you haven't already installed your Griptape Nodes engine, follow the installation steps [HERE](https://github.com/griptape-ai/griptape-nodes).
-After you've completed those and you have your engine up and running: 
+#### Dependencies
+Add Python packages your nodes require in the `dependencies.pip_dependencies` array. The engine will automatically install these when loading your library.
+
+#### Secrets Management
+Use the `settings.secrets_to_register` array to automatically register API keys and secrets your nodes need. Users will be prompted to configure these in the Griptape Nodes settings.
+
+#### Categories
+Organize your nodes into logical categories with custom colors and icons. Use descriptive category IDs like `"image/processing"` or `"data/conversion"`.
+
+## 🛠️ Best Practices
+
+### Error Handling
+Always implement proper error handling in your nodes:
+
+```python
+def process(self) -> None:
+    try:
+        # Your node logic here
+        result = self.do_something()
+        self.set_parameter_value("output", result)
+    except Exception as e:
+        # Log the error and provide helpful feedback
+        logger.error(f"Node failed: {str(e)}")
+        raise RuntimeError(f"Processing failed: {str(e)}")
+```
+
+### Logging
+Use the standard Python logging module for debugging:
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+def process(self) -> None:
+    logger.debug("Starting processing...")
+    # Your logic here
+    logger.info("Processing completed successfully")
+```
+
+### Input Validation
+Validate inputs before processing:
+
+```python
+def validate_before_node_run(self) -> list[Exception] | None:
+    errors = []
+    
+    # Check required parameters
+    if not self.get_parameter_value("required_param"):
+        errors.append(ValueError("Required parameter is missing"))
+    
+    # Check API keys
+    if not os.getenv("YOUR_API_KEY"):
+        errors.append(ValueError("YOUR_API_KEY environment variable not set"))
+    
+    return errors if errors else None
+```
+
+### Modern Parameter Patterns
+Use traits and modern parameter features:
+
+```python
+from griptape_nodes.traits.file_system_picker import FileSystemPicker
+from griptape_nodes.traits.options import Options
+from griptape_nodes.traits.slider import Slider
+
+# File picker parameter
+Parameter(
+    name="input_file",
+    type="str",
+    tooltip="Select input file",
+    traits={FileSystemPicker(allow_files=True, file_types=[".txt", ".json"])}
+)
+
+# Dropdown options
+Parameter(
+    name="model_type",
+    type="str",
+    default_value="gpt-4",
+    tooltip="Select model type",
+    traits={Options(choices=["gpt-4", "gpt-3.5-turbo", "claude-3"])}
+)
+
+# Slider for numeric values
+Parameter(
+    name="temperature",
+    type="float",
+    default_value=0.7,
+    tooltip="Creativity level (0.0-2.0)",
+    traits={Slider(min_val=0.0, max_val=2.0)}
+)
+```
+
+### Secrets Management
+Use the SecretsManager for API keys:
+
+```python
+from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes
+
+class MyNode(DataNode):
+    API_KEY_NAME = "MY_SERVICE_API_KEY"
+    
+    def _validate_api_key(self) -> str:
+        api_key = GriptapeNodes.SecretsManager().get_secret(self.API_KEY_NAME)
+        if not api_key:
+            raise ValueError(f"Missing {self.API_KEY_NAME}")
+        return api_key
+```
+
+### Import Best Practices
+Always import dependencies at module level:
+
+```python
+# ✅ Good - Module level imports
+from PIL import Image
+from io import BytesIO
+import requests
+
+# ❌ Bad - Lazy imports inside functions
+def process(self):
+    from PIL import Image  # Don't do this
+```
+
+### Dynamic Parameter Visibility
+Create context-aware UIs:
+
+```python
+def after_value_set(self, parameter: Parameter, value: Any) -> None:
+    if parameter.name == "mode":
+        if value == "advanced":
+            self.show_parameter_by_name("advanced_options")
+        else:
+            self.hide_parameter_by_name("advanced_options")
+    return super().after_value_set(parameter, value)
+```
+
+### Success/Failure Node Pattern
+For operations that can fail, use SuccessFailureNode:
+
+```python
+from griptape_nodes.exe_types.node_types import SuccessFailureNode
+
+class MyProcessingNode(SuccessFailureNode):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        
+        # Add status parameters
+        self._create_status_parameters(
+            result_details_tooltip="Details about the operation result",
+            result_details_placeholder="Operation details will appear here.",
+        )
+    
+    def process(self) -> None:
+        self._clear_execution_status()
+        
+        try:
+            # Your processing logic
+            result = self.do_processing()
+            self.parameter_output_values["output"] = result
+            
+            # Success
+            self._set_status_results(
+                was_successful=True, 
+                result_details="SUCCESS: Operation completed"
+            )
+        except Exception as e:
+            # Failure
+            self._set_status_results(
+                was_successful=False, 
+                result_details=f"FAILURE: {str(e)}"
+            )
+            self._handle_failure_exception(e)
+```
+
+### Asynchronous Processing
+For long-running operations, use the async pattern:
+
+```python
+from griptape_nodes.exe_types.node_types import AsyncResult
+
+class MyAsyncNode(DataNode):
+    def process(self) -> AsyncResult[None]:
+        yield lambda: self._process()
+    
+    def _process(self) -> None:
+        # Long-running operation
+        result = self.perform_long_operation()
+        self.parameter_output_values["output"] = result
+```
+
+### ParameterList for Multiple Inputs
+Accept multiple inputs of the same type:
+
+```python
+from griptape_nodes.exe_types.core_types import ParameterList
+
+self.add_parameter(
+    ParameterList(
+        name="images",
+        input_types=["ImageArtifact", "ImageUrlArtifact", "list[ImageArtifact]"],
+        default_value=[],
+        tooltip="Multiple image inputs",
+        allowed_modes={ParameterMode.INPUT},
+    )
+)
+
+# In process method
+images = self.get_parameter_list_value("images")  # Always returns list
+```
+
+## 📦 Installation
+
+### Prerequisites
+
+- [Griptape Nodes](https://github.com/griptape-ai/griptape-nodes) installed and running
+- Your custom node library created following the steps above
+
+### Install the Library
+
+1. **Download the library files** to your Griptape Nodes libraries directory:
+   ```bash
+   # Navigate to your Griptape Nodes libraries directory
+   cd `gtn config show workspace_directory`
+   
+   # Clone or download your library
+   git clone https://github.com/your-username/your-library-name.git
+   ```
+
+2. **Add the library** in the Griptape Nodes Editor:
+   * Open the Settings menu and navigate to the *Libraries* settings
+   * Click on *+ Add Library* at the bottom of the settings panel
+   * Enter the path to the library JSON file: **your Griptape Nodes Workspace directory**`/your-library-name/your-library-name.json`
+   * You can check your workspace directory with `gtn config show workspace_directory`
+   * Close the Settings Panel
+   * Click on *Refresh Libraries*
+
+3. **Verify installation** by checking that your custom nodes appear in the Griptape Nodes interface in your defined category.
 
 
-1. Copy the path to your `library.json`. Right click on the file, and `Copy Path` (Not `Copy Relative Path`)
-![Copy path of the library.json](./images/get_json_path.png)
-2. Start up the engine! 
-3. Navigate to settings
-![Open Settings](./images/open_settings.png)
-4. Open your settings and go to the App Events tab. Add an item in **Libraries to Register**
-![Add Library to Register](./images/add_library.png)
-5. Paste your copied `library.json` path from earlier into the new item 
-![Paste in your absolute path](./images/paste_library.png)
-6. Exit out of Settings. It will save automatically! 
-7. Open up the **Libraries** dropdown on the left sidebar 
-![See Libraries](./images/see_libraries.png)
-8. Your newly registered library should appear! Drag and drop nodes to use them!
-![Library Display](./images/final_image.png)
-
+## 🎯 Example Usage
 
 ### Here is an example flow that you could make with the provided nodes:
 ![Example Flow](./images/example_flow.png)
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+#### Library Not Appearing
+- Verify the JSON file path is correct
+- Check that the JSON syntax is valid (no trailing commas, proper quotes)
+- Ensure the library was refreshed after adding
+
+#### Node Import Errors
+- Check that all required dependencies are listed in the JSON
+- Verify Python file paths are correct relative to the JSON file
+- Ensure class names match exactly between Python files and JSON
+
+#### Missing API Keys
+- Configure secrets in Settings > API Keys & Secrets
+- Use the exact key names specified in `secrets_to_register`
+- Restart Griptape Nodes after adding new secrets
+
+## 📚 Additional Resources
+
+### Documentation
+- [Griptape Nodes Documentation](https://github.com/griptape-ai/griptape-nodes)
+- [Griptape Framework](https://github.com/griptape-ai/griptape)
+- [Node Development Examples](example_nodes_template/)
+
+### Community
+- [Griptape Discord](https://discord.gg/griptape)
+- [GitHub Discussions](https://github.com/griptape-ai/griptape-nodes/discussions)
+
+### Example Libraries
+- [Griptape Nodes Directory](https://github.com/griptape-ai/griptape-nodes-directory)
+
+## 📄 License
+
+This template is provided under the Apache License 2.0. Your custom library can use any license you choose.
+
+---
+
+Happy building! 🚀
