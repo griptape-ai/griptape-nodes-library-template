@@ -141,7 +141,7 @@ def validate_node(self) -> list[Exception] | None:
 ```
 2. Before setting a value on a parameter
 ```
-def before_value_set(self, parameter: Parameter, value: Any, modified_parameters_set: set[str]) -> Any:
+def before_value_set(self, parameter: Parameter, value: Any) -> Any:
     """Callback when a Parameter's value is ABOUT to be set.
 
         Custom nodes may elect to override the default behavior by implementing this function in their node code.
@@ -156,8 +156,6 @@ def before_value_set(self, parameter: Parameter, value: Any, modified_parameters
         Args:
             parameter: the Parameter on this node that is about to be changed
             value: the value intended to be set (this has already gone through any converters and validators on the Parameter)
-            modified_parameters_set: A set of parameter names within this node that were modified as a result
-                of this call. The Parameter this was called on does NOT need to be part of the return.
 
         Returns:
             The final value to set for the Parameter. This gives the Node logic one last opportunity to mutate the value
@@ -166,7 +164,7 @@ def before_value_set(self, parameter: Parameter, value: Any, modified_parameters
 ```
 3. After setting a value on a parameter
 ```
-def after_value_set(self, parameter: Parameter, value: Any, modified_parameters_set: set[str]) -> None: 
+def after_value_set(self, parameter: Parameter, value: Any) -> None: 
         """Callback AFTER a Parameter's value was set.
 
         Custom nodes may elect to override the default behavior by implementing this function in their node code.
@@ -178,8 +176,6 @@ def after_value_set(self, parameter: Parameter, value: Any, modified_parameters_
         Args:
             parameter: the Parameter on this node that was just changed
             value: the value that was set (already converted, validated, and possibly mutated by the node code)
-            modified_parameters_set: A set of parameter names within this node that were modified as a result
-                of this call. The Parameter this was called on does NOT need to be part of the return.
 
         Returns:
             Nothing
