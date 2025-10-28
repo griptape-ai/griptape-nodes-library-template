@@ -44,7 +44,8 @@ Each node is it's own python file, written in pure python code!
 To create nodes for your library, please take a look at our provided examples in the `example_nodes_template` library and follow the steps below.
 
 **Example Nodes:**
- [Age Node (DataNode)](example_nodes_template/age_node.py) - Simple data processing node with numeric input
+
+- [Age Node (DataNode)](example_nodes_template/age_node.py) - Simple data processing node with numeric input
 - [Create Introduction (ControlNode)](example_nodes_template/create_introduction.py) - Control flow node for text processing  
 - [Create Name Node](example_nodes_template/create_name.py) - Basic string manipulation node
 - [OpenAI Chat (ControlNode with Dependencies)](example_nodes_template/openai_chat.py) - Advanced node with external API integration
@@ -54,16 +55,6 @@ To create nodes for your library, please take a look at our provided examples in
 ## 📝 Creating Your Nodes
 
 ### Define a file with your node name
-[Example Data Node](example_nodes_template/create_name.py)
-
-
-[Example Control Node](example_nodes_template/create_introduction.py)
-
-
-[Example Node with Dependencies](example_nodes_template/openai_chat.py)
-
-
-## Define a file with your node name
 Define a `<your-node-name>.py` file in your `<your-library-name>` directory. 
 
 ### Define the Node Class
