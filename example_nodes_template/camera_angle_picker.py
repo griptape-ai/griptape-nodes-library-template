@@ -25,7 +25,7 @@ class CameraAnglePicker(DataNode):
                 default_value={"rotate_deg": 0, "move_forward": 0, "vertical_tilt": 0},
                 tooltip="Camera angles: rotate_deg (-90 to 90), move_forward (0 to 10), vertical_tilt (-1 to 1)",
                 allowed_modes={ParameterMode.PROPERTY, ParameterMode.OUTPUT},
-                traits={Widget(name="AnglePicker", library="example_nodes_template")},
+                traits={Widget(name="AnglePicker", library="Example Library")},
             )
         )
 
