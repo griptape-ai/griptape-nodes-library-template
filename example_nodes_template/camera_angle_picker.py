@@ -1,6 +1,7 @@
 from typing import Any
-from griptape_nodes.exe_types.node_types import DataNode
+
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
+from griptape_nodes.exe_types.node_types import DataNode
 from griptape_nodes.traits.widget import Widget
 
 
