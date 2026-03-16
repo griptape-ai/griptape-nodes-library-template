@@ -10,7 +10,10 @@
             "Griptape",
             "AI",
             "Examples"
-        ]
+        ],
+        "dependencies": {
+            "pip_dependencies": []
+        }
     },
     "widgets": [
         {

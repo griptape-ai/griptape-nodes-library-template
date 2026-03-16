@@ -1,5 +1,4 @@
-# Path to the library JSON file. Update this if you rename the library directory.
-LIBRARY_JSON := example_nodes_template/griptape_nodes_library.json
+LIBRARY_JSON := griptape_nodes_library.json
 
 .PHONY: version/get
 version/get: ## Get version.
