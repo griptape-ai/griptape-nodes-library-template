@@ -291,9 +291,9 @@ def after_outgoing_connection_removed(
 
 ## 📋 Library Configuration
 
-### Create your library JSON file
+### Update your library JSON file
 
-This configuration file defines your library metadata, dependencies, and nodes. It will be loaded by the Griptape Nodes engine at runtime.
+A `griptape-nodes-library.json` file already exists at the root of this repository. This configuration file defines your library metadata, dependencies, and nodes. It will be loaded by the Griptape Nodes engine at runtime.
 
 ```
 {
@@ -601,7 +601,7 @@ images = self.get_parameter_list_value("images")  # Always returns list
 
    - Open the Settings menu and navigate to the _Libraries_ settings
    - Click on _+ Add Library_ at the bottom of the settings panel
-   - Enter the path to the library JSON file: **your Griptape Nodes Workspace directory**`/your-library-name/your-library-name.json`
+   - Enter the path to the library JSON file: **your Griptape Nodes Workspace directory**`/your-library-name/griptape-nodes-library.json`
    - You can check your workspace directory with `gtn config show workspace_directory`
    - Close the Settings Panel
    - Click on _Refresh Libraries_
