@@ -1,17 +1,16 @@
 from typing import Any
-from griptape_nodes.exe_types.node_types import ControlNode
-from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
+
 import openai
+from griptape.events import TextChunkEvent
 from griptape.structures import Agent
 from griptape.utils import Stream
-from griptape.events import TextChunkEvent
+from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
+from griptape_nodes.exe_types.node_types import ControlNode
+
 
 class OpenAIChat(ControlNode):
     def __init__(self, name: str, metadata: dict[str, Any] | None = None, **kwargs) -> None:
-        node_metadata = {
-            "category": "ControlNodes",
-            "description": "An example node with dependencies"
-        }
+        node_metadata = {"category": "ControlNodes", "description": "An example node with dependencies"}
         if metadata:
             node_metadata.update(metadata)
         super().__init__(name=name, metadata=node_metadata, **kwargs)
@@ -21,10 +20,10 @@ class OpenAIChat(ControlNode):
                 name="prompt",
                 input_types=["str"],
                 type="str",
-                default_value = "Hey! What's up?",
+                default_value="Hey! What's up?",
                 tooltip="The prompt to call an agent",
                 allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY},
-                ui_options={"multiline":True}
+                ui_options={"multiline": True},
             )
         )
         self.add_parameter(
@@ -33,7 +32,7 @@ class OpenAIChat(ControlNode):
                 output_type="str",
                 tooltip="The output from the agent",
                 allowed_modes={ParameterMode.OUTPUT},
-                ui_options={"multiline":True,"placeholder_text":"The agent response"}
+                ui_options={"multiline": True, "placeholder_text": "The agent response"},
             )
         )
 
@@ -55,15 +54,12 @@ class OpenAIChat(ControlNode):
         # if there are exceptions, they will display when the user tries to run the flow with the node.
         return exceptions if exceptions else None
 
-
     def process(self) -> None:
         # All of the current values of a parameter are stored on self.parameter_values
         prompt = self.parameter_values["prompt"]
-        # Use a griptape agent to run the structure! 
+        # Use a griptape agent to run the structure!
         agent = Agent(stream=True)
         self.parameter_output_values["output"] = ""
         # Running with the Stream Util allows you to stream your responses to the node!
         for artifact in Stream(agent, event_types=[TextChunkEvent]).run(prompt):
             self.append_value_to_parameter("output", artifact.value)
-       
-        
