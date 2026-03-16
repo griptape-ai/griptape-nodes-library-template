@@ -2,17 +2,13 @@
 name = "example_nodes_template"
 version = "0.1.0"
 description = "Template for Users to create Custom Libraries and Nodes"
-authors = [
-    {name = "Your Name",email = "you@example.com"}
-]
+authors = [{ name = "Your Name", email = "you@example.com" }]
 readme = "README.md"
 requires-python = "~=3.12.0"
-dependencies = [
-    "griptape-nodes",
-]
+dependencies = ["griptape-nodes"]
 
 [tool.uv.sources]
-griptape-nodes = { git = "https://github.com/griptape-ai/griptape-nodes", rev="latest"}
+griptape-nodes = { git = "https://github.com/griptape-ai/griptape-nodes", rev = "latest" }
 
 [build-system]
 requires = ["hatchling"]
@@ -50,12 +46,6 @@ line-ending = "auto"
 venvPath = "."
 venv = ".venv"
 include = ["."]
-exclude = [
-  ".venv",
-  "**/node_modules",
-  "**/__pycache__",
-  "**/.*",
-  "templates",
-]
+exclude = [".venv", "**/node_modules", "**/__pycache__", "**/.*", "templates"]
 pythonVersion = "3.12"
 reportIncompatibleMethodOverride = false
