@@ -32,6 +32,7 @@ Individual checks:
 make check/format   # ruff format --check
 make check/lint     # ruff check
 make check/types    # pyright
+make check/json     # validate JSON files with jq
 ```
 
 ### Fixing Issues
