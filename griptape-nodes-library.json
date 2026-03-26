@@ -18,7 +18,7 @@
     "widgets": [
         {
             "name": "AnglePicker",
-            "path": "widgets/AnglePicker.js",
+            "path": "example_nodes_template/widgets/AnglePicker.js",
             "description": "3D camera angle picker for roll, tilt, and pan rotation values"
         }
     ],
@@ -43,7 +43,7 @@
     "nodes": [
         {
             "class_name": "CreateIntroduction",
-            "file_path": "create_introduction.py",
+            "file_path": "example_nodes_template/create_introduction.py",
             "metadata": {
                 "category": "ControlNodes",
                 "description": "Example Griptape Node that creates an introduction.",
@@ -52,7 +52,7 @@
         },
         {
             "class_name": "ConvertToPigLatin",
-            "file_path": "pig_latin.py",
+            "file_path": "example_nodes_template/pig_latin.py",
             "metadata": {
                 "category": "ControlNodes",
                 "description": "Example Griptape Node that converts to pig latin",
@@ -61,7 +61,7 @@
         },
         {
             "class_name": "OpenAIChat",
-            "file_path": "openai_chat.py",
+            "file_path": "example_nodes_template/openai_chat.py",
             "metadata": {
                 "category": "ControlNodes",
                 "description": "Example Griptape Node that displays how to account for dependencies.",
@@ -70,7 +70,7 @@
         },
         {
             "class_name": "CreateName",
-            "file_path": "create_name.py",
+            "file_path": "example_nodes_template/create_name.py",
             "metadata": {
                 "category": "DataNodes",
                 "description": "Example Griptape Node that creates a name.",
@@ -79,7 +79,7 @@
         },
         {
             "class_name": "Age",
-            "file_path": "age_node.py",
+            "file_path": "example_nodes_template/age_node.py",
             "metadata": {
                 "category": "DataNodes",
                 "description": "Example Griptape Node that sets an age.",
@@ -88,7 +88,7 @@
         },
         {
             "class_name": "CameraAnglePicker",
-            "file_path": "camera_angle_picker.py",
+            "file_path": "example_nodes_template/camera_angle_picker.py",
             "metadata": {
                 "category": "DataNodes",
                 "description": "Example Griptape Node with custom AnglePicker widget for 3D rotation angles",
