@@ -7,9 +7,9 @@ This is a guide to write your own nodes and node library, in order to use in our
 
 For comprehensive guidance on developing custom nodes, refer to these official resources:
 
-### Official Documentation
+### Getting Started Guide
 
-The [Griptape Nodes Developer Onboarding Guide](https://docs.griptapenodes.com/en/latest/how_to/developing_nodes/) provides:
+The [Getting Started Guide](https://docs.griptapenodes.com/en/latest/developing_nodes/getting_started/) provides:
 
 - A beginner-friendly introduction to the Griptape Nodes ecosystem
 - Guidance on choosing the right base node type (`DataNode`, `ControlNode`, `SuccessFailureNode`)
@@ -17,9 +17,9 @@ The [Griptape Nodes Developer Onboarding Guide](https://docs.griptapenodes.com/e
 - Practical information on parameters, traits, and validation
 - Common gotchas and troubleshooting tips
 
-### Node Development Guide Repository
+### Comprehensive Node Development Guide
 
-The [Node Development Guide](https://github.com/griptape-ai/griptape-nodes-node-development-guide) offers:
+The [Comprehensive Guide](https://docs.griptapenodes.com/en/latest/developing_nodes/comprehensive_guide/) offers:
 
 - In-depth technical reference material
 - Detailed documentation on node base classes and lifecycle callbacks
