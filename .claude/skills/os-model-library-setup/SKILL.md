@@ -66,7 +66,7 @@ Move `griptape-nodes-library.json` from the repo root into the package directory
 mv <library-root>/griptape-nodes-library.json <library-root>/<package-dir>/griptape-nodes-library.json
 ```
 
-## 6. Add the Git Submodule
+## 6. Add the Git Submodule and Pin to a Specific Commit
 
 Add the OS model repo as a git submodule inside the package directory:
 
@@ -74,11 +74,16 @@ Add the OS model repo as a git submodule inside the package directory:
 cd <library-root> && git submodule add <repo-url> <package-dir>/<submodule-name>
 ```
 
-If a specific branch should be tracked, set it after adding:
+**Pin the submodule to a specific commit.** The committed SHA in the parent repo is what determines which version of the OS model will be installed -- this is how the library guarantees reproducibility regardless of how the upstream repo changes. Choose the commit to pin:
 
-```bash
-cd <library-root> && git config -f .gitmodules submodule.<package-dir>/<submodule-name>.branch <branch>
-```
+- If the OS model repo has release tags, check out the latest one:
+  ```bash
+  cd <library-root>/<package-dir>/<submodule-name> && git tag --sort=-version:refname | head -5
+  cd <library-root>/<package-dir>/<submodule-name> && git checkout <latest-tag>
+  ```
+- If there are no release tags, the current HEAD (cloned by `git submodule add`) is already the pin -- no action needed.
+
+After checking out the desired commit, the parent repo will record the new SHA. The advanced library's commit-aware install check (see Step 10) ensures that when a future library release changes this SHA, the OS model package is automatically reinstalled in the user's venv.
 
 ## 7. Update pyproject.toml
 
@@ -130,6 +135,7 @@ Ensure these entries are present in `.gitignore` (add any that are missing):
 __pycache__/
 *.py[cod]
 .venv/
+.installed_commit
 dist/
 build/
 *.egg-info/
@@ -164,9 +170,10 @@ class <ClassName>LibraryAdvanced(AdvancedNodeLibrary):
     def before_library_nodes_loaded(self, library_data: LibrarySchema, library: Library) -> None:
         logger.info(f"Loading '{library_data.name}' library...")
         submodule_path = self._init_submodule()
-        if not self._is_installed():
+        if not self._is_installed(submodule_path):
             self._install_from_requirements(submodule_path)
             self._install_package(submodule_path)
+            self._write_installed_sentinel(submodule_path)
 
     def after_library_nodes_loaded(self, library_data: LibrarySchema, library: Library) -> None:
         logger.info(f"Finished loading '{library_data.name}' library")
@@ -207,14 +214,34 @@ class <ClassName>LibraryAdvanced(AdvancedNodeLibrary):
             return
         subprocess.check_call([str(venv_python), "-m", "ensurepip", "--upgrade"])
 
-    def _is_installed(self) -> bool:
-        """Check if the submodule package is already installed (used to skip re-installation)."""
+    def _get_submodule_commit(self, submodule_path: Path) -> str:
+        """Return the HEAD commit SHA of the submodule (the version pinned by the library author)."""
+        repo = pygit2.Repository(str(submodule_path))
+        return str(repo.head.target)
+
+    def _get_installed_sentinel(self) -> Path:
+        return self._get_library_root() / ".installed_commit"
+
+    def _write_installed_sentinel(self, submodule_path: Path) -> None:
+        self._get_installed_sentinel().write_text(self._get_submodule_commit(submodule_path))
+
+    def _is_installed(self, submodule_path: Path) -> bool:
+        """Return True only if the package is importable AND was installed from the currently-pinned commit.
+
+        This ensures that when a new library version ships with a different submodule commit,
+        the package is reinstalled rather than reusing a stale installation.
+        """
         venv_python = self._get_venv_python_path()
         result = subprocess.run(
             [str(venv_python), "-c", "import <import_name>"],
             capture_output=True,
         )
-        return result.returncode == 0
+        if result.returncode != 0:
+            return False
+        sentinel = self._get_installed_sentinel()
+        if not sentinel.exists():
+            return False
+        return sentinel.read_text().strip() == self._get_submodule_commit(submodule_path)
 
     def _install_from_requirements(self, submodule_path: Path) -> None:
         """Install dependencies from the submodule's requirements.txt.
