@@ -94,8 +94,9 @@ After the subagent completes, verify in the library repo:
 - Node `.py` files exist in the package directory
 - The manifest JSON `nodes` array has entries for each node
 - `make check` passes (or the subagent confirmed lint passed)
+- `README.md` exists at the repo root and does not contain placeholder text
 
-**Gate check:** If node files are missing or lint failed, do NOT proceed to the summary.
+**Gate check:** If node files are missing, lint failed, or README is missing/incomplete, do NOT proceed to the summary.
 
 ## Summary
 
@@ -115,6 +116,7 @@ Nodes Created:
 
 Files Created/Modified:
   <library-repo-path>/
+    README.md (new)
     pyproject.toml (updated)
     Makefile (updated)
     .gitmodules (new)

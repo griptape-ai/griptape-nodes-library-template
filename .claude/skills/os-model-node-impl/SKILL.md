@@ -380,7 +380,134 @@ Common issues to watch for:
 - Missing type annotations on public methods (add them)
 - Line length violations (ruff will fix most automatically with `make fix`)
 
-## 8. Final Verification
+## 9. Write the README
+
+Write `<library-root>/README.md`. The README must be complete and accurate -- no placeholder text.
+
+Use this structure (modeled on https://github.com/griptape-ai/griptape-nodes-depth-anything-3-library):
+
+```markdown
+# <Library Name>
+
+A [Griptape Nodes](https://www.griptapenodes.com/) library for <what the model does> using [<Model Name>](<repo-url>).
+
+## Overview
+
+<One paragraph describing what the library enables. Mention the key capabilities and output types.>
+
+## Requirements
+
+- **GPU**: <CUDA (NVIDIA) required | CUDA (NVIDIA) or MPS (Apple Silicon) required | CPU supported>
+- **Griptape Nodes Engine**: Version 0.77.5 or later
+
+## Nodes
+
+### <Node Display Name>
+
+<One sentence description.>
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `<name>` | <type> | <description> |
+| ... | ... | ... |
+
+### <Node Display Name 2> (if applicable)
+...
+
+## Available Models
+
+The following models are available from HuggingFace:
+
+| Model | Description |
+|-------|-------------|
+| `<org/model-id>` | <description> |
+| ... | ... |
+
+Models are downloaded automatically on first use and cached for subsequent runs.
+
+## Installation
+
+### Prerequisites
+
+- [Griptape Nodes](https://github.com/griptape-ai/griptape-nodes) installed and running
+- <GPU requirement sentence, e.g. "A CUDA-capable NVIDIA GPU or Apple Silicon Mac">
+
+### Install the Library
+
+1. **Clone the repository** to your Griptape Nodes workspace directory:
+
+   ```bash
+   cd `gtn config show workspace_directory`
+   git clone --recurse-submodules <library-github-url>.git
+   ```
+
+2. **Add the library** in the Griptape Nodes Editor:
+
+   - Open the Settings menu and navigate to the *Libraries* settings
+   - Click on *+ Add Library* at the bottom of the settings panel
+   - Enter the path to the library JSON file:
+     ```
+     <workspace_directory>/<library-repo-name>/<package_dir>/griptape-nodes-library.json
+     ```
+   - You can check your workspace directory with `gtn config show workspace_directory`
+   - Close the Settings Panel
+   - Click on *Refresh Libraries*
+
+3. **Verify installation** by checking that the nodes appear in the node palette under the "<Category Title>" category.
+
+## Usage
+
+### <Node Display Name>
+
+1. Add a **<Node Display Name>** node to your workflow
+2. <Step describing first required input>
+3. <Step describing any key parameters>
+4. Connect the output to your next node or a display
+
+<Repeat for each node.>
+
+## Troubleshooting
+
+### Library Not Loading
+
+- Ensure the git submodule is initialized. If you cloned without `--recurse-submodules`, run:
+  ```bash
+  git submodule update --init --recursive
+  ```
+
+### <GPU> Not Available
+
+- Verify your GPU drivers are up to date
+- For NVIDIA GPUs, ensure CUDA is properly installed
+- For Apple Silicon, ensure you're running on macOS 12.3 or later
+
+### Out of Memory Errors
+
+- Try using a smaller model variant
+- Close other GPU-intensive applications
+
+## Additional Resources
+
+- [<Model Name> GitHub](<repo-url>)
+- [Griptape Nodes Documentation](https://docs.griptapenodes.com/)
+- [Griptape Discord](https://discord.gg/griptape)
+
+## License
+
+This library is provided under the Apache License 2.0. The bundled <Model Name> submodule is subject to its own license: <upstream license>.
+```
+
+**Rules for the README**:
+- Fill every section with real content from the spec. No `...` placeholders.
+- The Parameters table for each node should include ALL inputs and outputs (combine into one table or split into Input/Output tables -- match the depth-anything-3 style with a single table).
+- For the GPU requirement line, use the spec's "GPU Requirements" field.
+- For the library GitHub URL in the install step, derive it from the library repo path (e.g., `https://github.com/griptape-ai/<library-repo-name>`).
+- The upstream license comes from the spec's "License" field.
+- If the model has no HuggingFace models section (weights are bundled or downloaded differently), omit the "Available Models" section.
+
+## 10. Final Verification
 
 Verify:
 - [ ] Each node file exists at `<package-dir>/<file_name>.py`
@@ -388,5 +515,6 @@ Verify:
 - [ ] `make check` passes with no errors
 - [ ] Deferred imports (from the submodule) are inside methods, not at module top level
 - [ ] `_create_status_parameters()` is the last call in each node's `__init__`
+- [ ] `README.md` exists at the library root with no placeholder text
 
-Report the list of created node files and confirmation that lint passes.
+Report the list of created node files, confirmation that lint passes, and confirmation that the README was written.
