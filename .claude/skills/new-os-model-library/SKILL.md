@@ -46,6 +46,36 @@ After the subagent completes, read the spec file yourself and verify:
 
 Note the spec file path for the next phases.
 
+## Node Approval Gate
+
+Before writing any files, present the proposed nodes to the user and wait for approval.
+
+Display this block to the user:
+
+```
+=== Proposed Nodes ===
+
+Model: <model name>
+CUDA required: <yes/no>
+
+Nodes (<count>):
+  1. <NodeClassName> -- <Display Name>
+     <one-sentence description>
+  2. <NodeClassName> -- <Display Name>
+     <one-sentence description>
+  ...
+
+Proceed with these nodes? Reply 'ok' to continue, or describe changes
+(e.g. "skip node 2", "only implement the first one", "add an X node").
+```
+
+Use the `AskUserQuestion` tool to pause and wait for the user's response.
+
+- If the user approves (e.g. "ok", "yes", "looks good"), proceed to Phase 2.
+- If the user requests changes, edit the spec file's `## Nodes to Implement` section to reflect their instructions (remove nodes, rename, or adjust scope), then show the updated list and confirm before proceeding.
+
+**Gate check:** Do NOT proceed to Phase 2 until the user has explicitly approved the node list.
+
 ## Phase 2: Library Setup
 
 Launch a subagent to run the `/os-model-library-setup` skill:
