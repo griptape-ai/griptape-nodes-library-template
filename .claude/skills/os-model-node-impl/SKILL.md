@@ -384,6 +384,14 @@ Common issues to watch for:
 
 Write `<library-root>/README.md`. The README must be complete and accurate -- no placeholder text.
 
+Before writing, fetch the latest Griptape Nodes release version from GitHub:
+
+```
+WebFetch: https://github.com/griptape-ai/griptape-nodes/releases/latest
+```
+
+Extract the version tag (e.g., `0.77.5`) from the page. Use that as the minimum engine version in the Requirements section.
+
 Use this structure (modeled on https://github.com/griptape-ai/griptape-nodes-depth-anything-3-library):
 
 ```markdown
@@ -398,7 +406,7 @@ A [Griptape Nodes](https://www.griptapenodes.com/) library for <what the model d
 ## Requirements
 
 - **GPU**: <CUDA (NVIDIA) required | CUDA (NVIDIA) or MPS (Apple Silicon) required | CPU supported>
-- **Griptape Nodes Engine**: Version 0.77.5 or later
+- **Griptape Nodes Engine**: Version <latest release version> or later
 
 ## Nodes
 

@@ -284,6 +284,14 @@ If post-install patches are needed (from the spec's "Post-install patches needed
 
 ## 11. Rewrite the Manifest JSON
 
+Before writing the manifest, fetch the latest Griptape Nodes release version from GitHub:
+
+```
+WebFetch: https://github.com/griptape-ai/griptape-nodes/releases/latest
+```
+
+Extract the version tag (e.g., `0.77.5`) and use it as the `engine_version` below.
+
 Write the new manifest JSON to `<package-dir>/griptape-nodes-library.json`. Use this structure:
 
 ```json
@@ -295,7 +303,7 @@ Write the new manifest JSON to `<package-dir>/griptape-nodes-library.json`. Use 
         "author": "Griptape, Inc.",
         "description": "<Description from spec Model Info>",
         "library_version": "0.1.0",
-        "engine_version": "0.77.5",
+        "engine_version": "<latest release version from GitHub>",
         "tags": <tags array from spec>,
         "dependencies": {
             "pip_dependencies": <build this list - see below>,
