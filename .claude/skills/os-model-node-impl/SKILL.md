@@ -58,9 +58,11 @@ self._model_param.add_input_parameters()
 # Usage in validate_before_node_run:
 return self._model_param.validate_before_node_run()
 # Usage in _run_inference:
-model_id = self._model_param.get_repo_id()
+model_repo_id, _ = self._model_param.get_repo_revision()
 ```
 Use `HuggingFaceRepoParameter` by default. Only use `HuggingFaceRepoVariantParameter` or `HuggingFaceRepoFileParameter` when the spec describes single-repo/multi-variant or per-file selection. Never use a plain dropdown for HF repo IDs.
+
+Note: `get_repo_revision()` returns a `(repo_id, revision)` tuple. Always unpack it as `repo_id, _ = ...`.
 
 **Seed** - whenever the model accepts a seed/RNG value for reproducibility:
 ```python
@@ -99,9 +101,12 @@ from griptape_nodes.exe_types.node_types import SuccessFailureNode
 - Output only: `allowed_modes={ParameterMode.OUTPUT}` plus `output_type=`
 
 **Artifact input types**:
-- `type="ImageArtifact"`, `input_types=["ImageArtifact", "ImageUrlArtifact"]`
-- `type="AudioArtifact"`, `input_types=["AudioArtifact", "AudioUrlArtifact"]`
-- `type="VideoArtifact"`, `input_types=["VideoArtifact", "VideoUrlArtifact"]`
+
+Prefer URL artifact variants for all media inputs. URL artifacts hold a reference rather than raw bytes, which avoids saturating the WebSocket event stream.
+
+- `type="ImageUrlArtifact"`, `input_types=["ImageUrlArtifact", "ImageArtifact"]`
+- `type="AudioUrlArtifact"`, `input_types=["AudioUrlArtifact", "AudioArtifact"]`
+- `type="VideoUrlArtifact"`, `input_types=["VideoUrlArtifact"]` -- `VideoArtifact` does not exist
 - `type="str"`, `type="int"`, `type="float"`, `type="bool"`
 
 **For option dropdowns** (non-HF string choices):
@@ -285,7 +290,6 @@ from griptape.artifacts import AudioArtifact, AudioUrlArtifact
 
 audio_artifact = self.parameter_values.get("audio")
 if isinstance(audio_artifact, AudioUrlArtifact):
-    # Download the audio
     import urllib.request
     audio_data, _ = urllib.request.urlretrieve(audio_artifact.url)
 else:
@@ -295,6 +299,22 @@ else:
 import io
 import torchaudio
 waveform, sample_rate = torchaudio.load(io.BytesIO(audio_data))
+```
+
+**Reading video inputs**:
+
+`VideoArtifact` does not exist -- only `VideoUrlArtifact`. Its URL is in `.value` (not `.url`).
+
+```python
+import urllib.request
+from griptape.artifacts.video_url_artifact import VideoUrlArtifact
+
+video_artifact = self.parameter_values.get("video")
+if not isinstance(video_artifact, VideoUrlArtifact):
+    raise ValueError("video is required")
+
+with urllib.request.urlopen(video_artifact.value) as resp:
+    video_bytes = resp.read()
 ```
 
 **Writing media outputs (image, audio, video)**:

@@ -173,9 +173,9 @@ Write the complete spec to `<library-repo-path>/.scratch/os-model-spec-<model-na
 **Inputs**:
 | Name | Type | Default | Required | Tooltip |
 |------|------|---------|----------|---------|
-| <name> | <str/int/float/ImageArtifact/AudioArtifact/VideoArtifact> | <default> | <yes/no> | <tooltip> |
+| <name> | <str/int/float/ImageUrlArtifact/AudioUrlArtifact/VideoUrlArtifact> | <default> | <yes/no> | <tooltip> |
 
-Note: For inputs that select a HuggingFace model (values are repo IDs from `## HuggingFace Models`), use type `HuggingFaceModel` in the table. Do NOT list them as plain `str` with Options choices -- the node implementation phase will use `HuggingFaceRepoParameter` (or another `HuggingFaceModelParameter` subclass) for these.
+Note: Use URL artifact variants for all media inputs (`ImageUrlArtifact`, `AudioUrlArtifact`, `VideoUrlArtifact`). `VideoArtifact` does not exist. For inputs that select a HuggingFace model (values are repo IDs from `## HuggingFace Models`), use type `HuggingFaceModel` in the table. Do NOT list them as plain `str` with Options choices -- the node implementation phase will use `HuggingFaceRepoParameter` (or another `HuggingFaceModelParameter` subclass) for these.
 
 **Outputs**:
 | Name | Type | Description |
