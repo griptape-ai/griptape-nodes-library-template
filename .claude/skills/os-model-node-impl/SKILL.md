@@ -272,6 +272,8 @@ class <NodeClassName>(SuccessFailureNode):
 
 ## 5. Handle Artifact Types
 
+Always use `File` to load artifact data -- never use `urllib`, `requests`, or `open()` directly.
+
 **Reading image inputs**:
 ```python
 from griptape.artifacts import ImageArtifact, ImageUrlArtifact
@@ -281,23 +283,23 @@ image_artifact = self.parameter_values.get("image")
 if isinstance(image_artifact, ImageUrlArtifact):
     image_data = File(source=image_artifact.url).load()
 else:
-    image_data = image_artifact.value  # bytes
+    image_data = File(source=image_artifact.value).load()
 ```
 
 **Reading audio inputs**:
 ```python
+import io
+import torchaudio
 from griptape.artifacts import AudioArtifact, AudioUrlArtifact
+from griptape_nodes.files.file import File
 
 audio_artifact = self.parameter_values.get("audio")
 if isinstance(audio_artifact, AudioUrlArtifact):
-    import urllib.request
-    audio_data, _ = urllib.request.urlretrieve(audio_artifact.url)
+    audio_data = File(source=audio_artifact.url).load()
 else:
-    audio_data = audio_artifact.value  # bytes
+    audio_data = File(source=audio_artifact.value).load()
 
 # Load into tensor with torchaudio:
-import io
-import torchaudio
 waveform, sample_rate = torchaudio.load(io.BytesIO(audio_data))
 ```
 
@@ -306,15 +308,14 @@ waveform, sample_rate = torchaudio.load(io.BytesIO(audio_data))
 `VideoArtifact` does not exist -- only `VideoUrlArtifact`. Its URL is in `.value` (not `.url`).
 
 ```python
-import urllib.request
 from griptape.artifacts.video_url_artifact import VideoUrlArtifact
+from griptape_nodes.files.file import File
 
 video_artifact = self.parameter_values.get("video")
 if not isinstance(video_artifact, VideoUrlArtifact):
     raise ValueError("video is required")
 
-with urllib.request.urlopen(video_artifact.value) as resp:
-    video_bytes = resp.read()
+video_bytes = File(source=video_artifact.value).load()
 ```
 
 **Writing media outputs (image, audio, video)**:
