@@ -67,9 +67,13 @@ Note: `get_repo_revision()` returns a `(repo_id, revision)` tuple. Always unpack
 **Seed** - any input named `seed` in the spec MUST use `SeedParameter` regardless of what type the spec table says. Never create a raw `Parameter(name="seed", ...)`. The `SeedParameter` adds both a `randomize_seed` bool and a `seed` int as a unit:
 ```python
 from griptape_nodes.exe_types.param_components.seed_parameter import SeedParameter
-# Usage in __init__ (replaces any raw seed Parameter):
+# Usage in __init__:
+# IMPORTANT: create SeedParameter FIRST, before any other add_parameter calls.
+# after_value_set can be called during parameter initialization, so _seed_param
+# must exist by then or the node will fail to load.
 self._seed_param = SeedParameter(self)
-self._seed_param.add_input_parameters()
+# ... add all other parameters ...
+self._seed_param.add_input_parameters()  # call add_input_parameters in position order
 # Usage in after_value_set (add this method if the node doesn't already have it):
 def after_value_set(self, parameter: Parameter, value: Any) -> None:
     super().after_value_set(parameter, value)
