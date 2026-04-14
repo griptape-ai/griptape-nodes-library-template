@@ -64,15 +64,17 @@ Use `HuggingFaceRepoParameter` by default. Only use `HuggingFaceRepoVariantParam
 
 Note: `get_repo_revision()` returns a `(repo_id, revision)` tuple. Always unpack it as `repo_id, _ = ...`.
 
-**Seed** - whenever the model accepts a seed/RNG value for reproducibility:
+**Seed** - any input named `seed` in the spec MUST use `SeedParameter` regardless of what type the spec table says. Never create a raw `Parameter(name="seed", ...)`. The `SeedParameter` adds both a `randomize_seed` bool and a `seed` int as a unit:
 ```python
 from griptape_nodes.exe_types.param_components.seed_parameter import SeedParameter
-# Usage in __init__:
+# Usage in __init__ (replaces any raw seed Parameter):
 self._seed_param = SeedParameter(self)
 self._seed_param.add_input_parameters()
-# Usage in after_value_set:
-self._seed_param.after_value_set(parameter, value)
-# Usage before inference:
+# Usage in after_value_set (add this method if the node doesn't already have it):
+def after_value_set(self, parameter: Parameter, value: Any) -> None:
+    super().after_value_set(parameter, value)
+    self._seed_param.after_value_set(parameter, value)
+# Usage before inference (replaces any manual seed read from parameter_values):
 self._seed_param.preprocess()
 seed = self._seed_param.get_seed()
 ```
@@ -272,9 +274,6 @@ class <NodeClassName>(SuccessFailureNode):
 
 ## 5. Handle Artifact Types
 
-<<<<<<< Updated upstream
-Always use `File` to load artifact data -- never use `urllib`, `requests`, or `open()` directly.
-=======
 **All URL artifact types store their path in `.value`** -- there is no `.url` attribute. Never use `urllib`, `requests`, or `open()` directly; always use `File` to read artifact data so macro paths like `{outputs}/file.mp4` are resolved correctly.
 
 ```python
@@ -286,7 +285,6 @@ media_bytes = File(artifact.value).read_bytes()
 This pattern works for `ImageUrlArtifact`, `AudioUrlArtifact`, and `VideoUrlArtifact` identically.
 
 **Note**: `VideoArtifact` does not exist -- only `VideoUrlArtifact`.
->>>>>>> Stashed changes
 
 **Reading image inputs**:
 ```python
@@ -294,16 +292,9 @@ from griptape.artifacts import ImageArtifact, ImageUrlArtifact
 from griptape_nodes.files.file import File
 
 image_artifact = self.parameter_values.get("image")
-<<<<<<< Updated upstream
-if isinstance(image_artifact, ImageUrlArtifact):
-    image_data = File(source=image_artifact.url).load()
-else:
-    image_data = File(source=image_artifact.value).load()
-=======
 if not isinstance(image_artifact, (ImageArtifact, ImageUrlArtifact)):
     raise ValueError("image is required")
 image_bytes = File(image_artifact.value).read_bytes()
->>>>>>> Stashed changes
 ```
 
 **Reading audio inputs**:
@@ -314,21 +305,6 @@ from griptape.artifacts import AudioArtifact, AudioUrlArtifact
 from griptape_nodes.files.file import File
 
 audio_artifact = self.parameter_values.get("audio")
-<<<<<<< Updated upstream
-if isinstance(audio_artifact, AudioUrlArtifact):
-    audio_data = File(source=audio_artifact.url).load()
-else:
-    audio_data = File(source=audio_artifact.value).load()
-
-# Load into tensor with torchaudio:
-waveform, sample_rate = torchaudio.load(io.BytesIO(audio_data))
-```
-
-**Reading video inputs**:
-
-`VideoArtifact` does not exist -- only `VideoUrlArtifact`. Its URL is in `.value` (not `.url`).
-
-=======
 if not isinstance(audio_artifact, (AudioArtifact, AudioUrlArtifact)):
     raise ValueError("audio is required")
 audio_bytes = File(audio_artifact.value).read_bytes()
@@ -336,7 +312,6 @@ waveform, sample_rate = torchaudio.load(io.BytesIO(audio_bytes))
 ```
 
 **Reading video inputs**:
->>>>>>> Stashed changes
 ```python
 from griptape.artifacts.video_url_artifact import VideoUrlArtifact
 from griptape_nodes.files.file import File
@@ -344,12 +319,7 @@ from griptape_nodes.files.file import File
 video_artifact = self.parameter_values.get("video")
 if not isinstance(video_artifact, VideoUrlArtifact):
     raise ValueError("video is required")
-<<<<<<< Updated upstream
-
-video_bytes = File(source=video_artifact.value).load()
-=======
 video_bytes = File(video_artifact.value).read_bytes()
->>>>>>> Stashed changes
 ```
 
 **Writing media outputs (image, audio, video)**:
