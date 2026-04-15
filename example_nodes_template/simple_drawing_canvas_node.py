@@ -7,7 +7,6 @@ The canvas allows basic drawing and exports the result as base64 image data.
 from typing import Any
 
 from griptape.artifacts import ImageUrlArtifact
-
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import DataNode
 from griptape_nodes.traits.widget import Widget
