@@ -78,10 +78,12 @@ To create nodes for your library, please take a look at our provided examples in
 **Example Nodes:**
 
 - [Age Node (DataNode)](example_nodes_template/age_node.py) - Simple data processing node with numeric input
+- [Camera Angle Picker (DataNode with Custom Widget)](example_nodes_template/camera_angle_picker.py) - Interactive 3D rotation angle picker demonstrating custom widget integration
 - [Create Introduction (ControlNode)](example_nodes_template/create_introduction.py) - Control flow node for text processing
 - [Create Name Node](example_nodes_template/create_name.py) - Basic string manipulation node
 - [OpenAI Chat (ControlNode with Dependencies)](example_nodes_template/openai_chat.py) - Advanced node with external API integration
-- [Pig Latin -Converter](example_nodes_template/pig_latin.py) - Text transformation example
+- [Pig Latin Converter](example_nodes_template/pig_latin.py) - Text transformation example
+- [Simple Drawing Canvas (DataNode with Canvas Widget)](example_nodes_template/simple_drawing_canvas_node.py) - Canvas-based widget for drawing and image annotation with retina scaling
 
 ## 📝 Creating Your Nodes
 
