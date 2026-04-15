@@ -78,10 +78,12 @@ To create nodes for your library, please take a look at our provided examples in
 **Example Nodes:**
 
 - [Age Node (DataNode)](example_nodes_template/age_node.py) - Simple data processing node with numeric input
+- [Camera Angle Picker (DataNode with Custom Widget)](example_nodes_template/camera_angle_picker.py) - Interactive 3D rotation angle picker demonstrating custom widget integration
 - [Create Introduction (ControlNode)](example_nodes_template/create_introduction.py) - Control flow node for text processing
 - [Create Name Node](example_nodes_template/create_name.py) - Basic string manipulation node
 - [OpenAI Chat (ControlNode with Dependencies)](example_nodes_template/openai_chat.py) - Advanced node with external API integration
-- [Pig Latin -Converter](example_nodes_template/pig_latin.py) - Text transformation example
+- [Pig Latin Converter](example_nodes_template/pig_latin.py) - Text transformation example
+- [Simple Drawing Canvas (DataNode with Canvas Widget)](example_nodes_template/simple_drawing_canvas_node.py) - Canvas-based widget for drawing and image annotation with retina scaling
 
 ## 📝 Creating Your Nodes
 
@@ -288,6 +290,158 @@ def after_outgoing_connection_removed(
         """Callback after a Connection OUT of this Node was REMOVED."""
         return
 ```
+
+## 🎨 Custom Widget Components
+
+Custom widgets allow you to create interactive UI components that go beyond standard input fields. Widgets are JavaScript modules that render custom interfaces in the Foundry Griptape editor.
+
+### When to Use Custom Widgets
+
+Consider creating a custom widget when you need:
+
+- **Interactive visualizations**: Color pickers, 3D angle selectors, graph editors
+- **Canvas-based editors**: Drawing tools, mask painting, image annotation
+- **Specialized input methods**: Custom sliders, multi-dimensional controls, visual editors
+- **Rich data editing**: JSON editors, table editors, complex nested structures
+
+### Widget Architecture
+
+A custom widget consists of three parts:
+
+1. **JavaScript Widget File**: The UI component (`.js` file in your library's `widgets/` directory)
+2. **Widget Registration**: Entry in your `griptape-nodes-library.json`
+3. **Node Integration**: Use the `Widget` trait on a parameter in your node
+
+### Creating a Widget
+
+Create a JavaScript file in your `widgets/` directory:
+
+```javascript
+// widgets/MyCustomWidget.js
+export default function MyCustomWidget(container, props) {
+  const { value, onChange, disabled } = props;
+
+  // Create your UI
+  const input = document.createElement('input');
+  input.value = value || '';
+  input.disabled = disabled;
+
+  // Handle user interaction
+  input.addEventListener('change', (e) => {
+    if (!disabled && onChange) {
+      onChange(e.target.value);
+    }
+  });
+
+  // Add to container
+  container.appendChild(input);
+
+  // Cleanup function (optional)
+  return () => {
+    input.removeEventListener('change', handleChange);
+  };
+}
+```
+
+### Widget Props
+
+Your widget function receives a `props` object with:
+
+- `value`: The current parameter value
+- `onChange`: Callback to update the value - call with the new value
+- `disabled`: Boolean indicating if the parameter is disabled
+
+### Registering Your Widget
+
+Add your widget to `griptape-nodes-library.json`:
+
+```json
+{
+  "widgets": [
+    {
+      "name": "MyCustomWidget",
+      "path": "your_library_name/widgets/MyCustomWidget.js",
+      "description": "Description of what your widget does"
+    }
+  ]
+}
+```
+
+### Using Widgets in Nodes
+
+Import the `Widget` trait and apply it to a parameter:
+
+```python
+from griptape_nodes.traits.widget import Widget
+
+class MyNode(DataNode):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+
+        self.add_parameter(
+            Parameter(
+                name="custom_input",
+                type="dict",  # or str, int, etc.
+                default_value={},
+                tooltip="Custom widget parameter",
+                allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY},
+                traits={Widget(name="MyCustomWidget", library="Your Library Name")},
+            )
+        )
+```
+
+### Widget Best Practices
+
+**Event Isolation**: Prevent canvas drag interference by using `nodrag` and `nowheel` classes and `stopPropagation()`:
+
+```javascript
+element.className = 'nodrag nowheel';
+element.addEventListener('pointerdown', (e) => e.stopPropagation());
+```
+
+**State Management**: Always clone objects before passing to `onChange` to prevent shared references:
+
+```javascript
+// ✅ Good - clone the object
+onChange({ ...state });
+
+// ❌ Bad - passes internal reference
+onChange(state);
+```
+
+**Canvas Retina Scaling**: For canvas-based widgets, scale for high-DPI displays:
+
+```javascript
+const dpr = window.devicePixelRatio || 1;
+canvas.width = width * dpr;
+canvas.height = height * dpr;
+ctx.scale(dpr, dpr);
+```
+
+**Cleanup**: Return a cleanup function to remove event listeners and intervals:
+
+```javascript
+export default function MyWidget(container, props) {
+  // Setup code...
+
+  return () => {
+    // Cleanup: remove listeners, clear intervals, etc.
+    element.removeEventListener('click', handler);
+    clearInterval(intervalId);
+  };
+}
+```
+
+### Example Widgets
+
+This template includes two complete widget examples:
+
+- **[AnglePicker](example_nodes_template/widgets/AnglePicker.js)**: 3D rotation angle selector with interactive visualization
+- **[SimpleDrawingCanvas](example_nodes_template/widgets/SimpleDrawingCanvas.js)**: Canvas-based drawing tool with image annotation, retina scaling, and proper coordinate handling
+
+### Further Reading
+
+For comprehensive guidance on custom widgets, including advanced patterns and integration techniques, see the [Custom Widget Components Guide](https://docs.griptapenodes.com/en/latest/developing_nodes/comprehensive_guide/#custom-widget-components) in the official documentation.
 
 ## 📋 Library Configuration
 
