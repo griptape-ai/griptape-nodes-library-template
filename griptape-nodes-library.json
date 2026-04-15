@@ -20,6 +20,11 @@
             "name": "AnglePicker",
             "path": "example_nodes_template/widgets/AnglePicker.js",
             "description": "3D camera angle picker for roll, tilt, and pan rotation values"
+        },
+        {
+            "name": "SimpleDrawingCanvas",
+            "path": "example_nodes_template/widgets/SimpleDrawingCanvas.js",
+            "description": "Canvas-based drawing widget demonstrating retina scaling and image annotation"
         }
     ],
     "categories": [
@@ -93,6 +98,15 @@
                 "category": "DataNodes",
                 "description": "Example Griptape Node with custom AnglePicker widget for 3D rotation angles",
                 "display_name": "Camera Angle Picker"
+            }
+        },
+        {
+            "class_name": "SimpleDrawingCanvasNode",
+            "file_path": "example_nodes_template/simple_drawing_canvas_node.py",
+            "metadata": {
+                "category": "DataNodes",
+                "description": "Example canvas-based widget for drawing annotations on images",
+                "display_name": "Simple Drawing Canvas"
             }
         }
     ]
