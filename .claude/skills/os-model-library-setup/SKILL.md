@@ -248,6 +248,11 @@ class <ClassName>LibraryAdvanced(AdvancedNodeLibrary):
 
         This preserves platform markers, version pins, and extra-index-url
         directives exactly as the model author specified.
+
+        Uses --no-build-isolation so that packages requiring torch at build time
+        (e.g., auto_gptq, flash-attn) can find the torch already installed in the venv.
+        Without this flag, pip creates an isolated build environment that doesn't
+        see the venv's packages, causing "No module named 'torch'" build failures.
         """
         requirements_file = submodule_path / "requirements.txt"
         if not requirements_file.exists():
@@ -257,7 +262,7 @@ class <ClassName>LibraryAdvanced(AdvancedNodeLibrary):
         self._ensure_pip()
         logger.info(f"Installing requirements from {requirements_file}...")
         subprocess.check_call(
-            [str(venv_python), "-m", "pip", "install", "-r", str(requirements_file)]
+            [str(venv_python), "-m", "pip", "install", "--no-build-isolation", "-r", str(requirements_file)]
         )
         logger.info("Requirements installed successfully")
 
@@ -317,12 +322,22 @@ Write the new manifest JSON to `<package-dir>/griptape-nodes-library.json`. Use 
 ```
 
 **Building `pip_dependencies`**:
-- Leave as an empty array `[]`
+- If the spec indicates "Torch required: yes", add PyTorch to `pip_dependencies`:
+  ```json
+  "pip_dependencies": [
+      "torch",
+      "torchvision",
+      "torchaudio"
+  ],
+  "pip_install_flags": [
+      "--preview",
+      "--torch-backend=auto"
+  ]
+  ```
+  This is **required** because many packages in the submodule's `requirements.txt` (e.g., `auto_gptq`, `flash-attn`) need torch at build time. If torch isn't installed first, pip will fail with "No module named 'torch'" during wheel builds. The `--torch-backend=auto` flag lets uv auto-detect the correct CUDA version.
+- If "Torch required: no", leave `pip_dependencies` as an empty array `[]`
 - `pygit2` is a dependency of `griptape-nodes` and is always available - no need to list it
-- All other dependencies are installed by the advanced library from the submodule's `requirements.txt` at load time
 - Do NOT include `griptape-nodes` itself
-
-Do NOT include `pip_install_flags` - the submodule's `requirements.txt` contains its own `--extra-index-url` directives which pip will process automatically.
 
 **Adding `resources`** - set based on spec's "GPU Requirements":
 - "CUDA required" (no MPS/CPU support): `[["cuda"], "has_any"]`

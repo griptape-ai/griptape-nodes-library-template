@@ -69,6 +69,14 @@ Read the following files (search for them if paths vary):
 
 If none exist at the root, check subdirectories (some repos put these in `src/` or the main package dir).
 
+**Build-time torch dependencies** - scan requirements.txt for packages known to require torch at build time:
+- `auto_gptq` - CUDA quantization, needs torch for building
+- `flash-attn` / `flash_attn` - Flash Attention, needs torch for building
+- `bitsandbytes` - quantization library, needs torch
+- Any package with `@ git+https://...` that builds CUDA extensions
+
+If any of these are present, note them in the spec's "Build-time torch dependencies" field. This determines whether torch must be pre-installed via pip_dependencies before requirements.txt is processed.
+
 **HuggingFace model validation** - for every HF model ID you find (strings matching `org/model-name` or `hf.co/` URLs), verify it is a real, publicly accessible HF repo:
 
 ```bash
@@ -144,8 +152,9 @@ Write the complete spec to `<library-repo-path>/.scratch/os-model-spec-<model-na
 
 ## Dependencies
 - **Has requirements.txt**: <yes | no> (if yes, library_advanced.py installs it directly at runtime - do not copy contents here)
-- **Torch required**: <yes/no>
+- **Torch required**: <yes/no> (if yes, torch must be in pip_dependencies so it's installed before requirements.txt)
 - **GPU Requirements**: <CUDA required | CUDA + MPS supported | CPU only>
+- **Build-time torch dependencies**: <list any packages in requirements.txt that need torch at build time, e.g., auto_gptq, flash-attn, or "none">
 - **Special install notes**: <anything unusual not covered by requirements.txt, e.g., manual build steps>
 
 ## HuggingFace Models
