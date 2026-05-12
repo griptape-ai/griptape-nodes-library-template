@@ -38,15 +38,10 @@ mv <library-root>/example_nodes_template <library-root>/<package_dir_name>
 
 ## 3. Remove Template Example Files
 
-Delete all template example files from the renamed directory. Keep `__init__.py`:
+Delete all `.py` files in the renamed directory except `__init__.py`, plus the `widgets/` subdirectory. This catches any example files the template may have added (the specific filename list changes over time):
 
 ```bash
-rm <package-dir>/age_node.py
-rm <package-dir>/create_introduction.py
-rm <package-dir>/create_name.py
-rm <package-dir>/pig_latin.py
-rm <package-dir>/openai_chat.py
-rm <package-dir>/camera_angle_picker.py
+find <package-dir> -maxdepth 1 -type f -name "*.py" ! -name "__init__.py" -delete
 rm -rf <package-dir>/widgets
 ```
 
@@ -276,14 +271,48 @@ class <ClassName>LibraryAdvanced(AdvancedNodeLibrary):
         logger.info("Package installed successfully")
 ```
 
-If the submodule is NOT pip-installable (no setup.py/pyproject.toml), replace `_install_package` with:
+If the submodule is NOT pip-installable (no setup.py/pyproject.toml), apply THREE changes to the template above. The default `_is_installed` runs `import <name>` in a venv subprocess to check whether the package is present, but sys.path mutations happen only in the engine process and never reach a subprocess, so the subprocess check is the wrong signal. The path must also be re-applied on every load, since sys.path does not persist across engine restarts.
 
-```python
-    def _install_package(self, submodule_path: Path) -> None:
-        if str(submodule_path) not in sys.path:
-            sys.path.insert(0, str(submodule_path))
-        logger.info(f"Added {submodule_path} to sys.path")
-```
+1. Replace `_install_package` with the sys.path variant. Point to the exact directory that contains the importable modules — this may be a subdirectory of the submodule root (e.g., `<submodule>/lite/demo`) when upstream ships flat scripts in a subdir rather than a package at the repo root:
+
+   ```python
+       def _install_package(self, submodule_path: Path) -> None:
+           # Point at the directory containing the importable modules. This may be
+           # submodule_path itself, or a subdirectory like submodule_path / "lite" / "demo".
+           import_root = submodule_path  # or: submodule_path / "lite" / "demo"
+           if str(import_root) not in sys.path:
+               sys.path.insert(0, str(import_root))
+           logger.info(f"Added {import_root} to sys.path")
+   ```
+
+2. Replace `_is_installed` so it uses the commit sentinel as the sole source of truth (skip the subprocess import check, which will always fail for sys.path installs):
+
+   ```python
+       def _is_installed(self, submodule_path: Path) -> bool:
+           """For sys.path installs, the commit sentinel is the only durable install signal.
+
+           sys.path mutations do not survive across engine restarts and cannot be observed
+           from a venv subprocess, so we rely entirely on the committed-version sentinel.
+           """
+           sentinel = self._get_installed_sentinel()
+           if not sentinel.exists():
+               return False
+           return sentinel.read_text().strip() == self._get_submodule_commit(submodule_path)
+   ```
+
+3. Modify `before_library_nodes_loaded` to always call `_install_package` (not just on first install), so sys.path is re-applied every load:
+
+   ```python
+       def before_library_nodes_loaded(self, library_data: LibrarySchema, library: Library) -> None:
+           logger.info(f"Loading '{library_data.name}' library...")
+           submodule_path = self._init_submodule()
+           if not self._is_installed(submodule_path):
+               self._install_from_requirements(submodule_path)
+               self._write_installed_sentinel(submodule_path)
+           # Always re-apply sys.path — it does not persist across engine restarts,
+           # and _install_package is idempotent (no-ops if path already present).
+           self._install_package(submodule_path)
+   ```
 
 If post-install patches are needed (from the spec's "Post-install patches needed"), add a `self._apply_patches()` call in `before_library_nodes_loaded` after `_install_package` and implement the method.
 
@@ -338,6 +367,23 @@ Write the new manifest JSON to `<package-dir>/griptape-nodes-library.json`. Use 
 - If "Torch required: no", leave `pip_dependencies` as an empty array `[]`
 - `pygit2` is a dependency of `griptape-nodes` and is always available - no need to list it
 - Do NOT include `griptape-nodes` itself
+
+**Exception: submodule is sys.path-installed AND has no `requirements.txt`**
+
+When the spec says the submodule is NOT pip-installable AND there is no `requirements.txt` for `_install_from_requirements` to consume, runtime deps have nowhere else to go. In this case, list ALL runtime deps from the spec's "Dependencies" section directly in `pip_dependencies`, not just torch:
+
+```json
+"pip_dependencies": [
+    "torch",
+    "torchvision",
+    "opencv-python-headless",
+    "tqdm",
+    "numpy",
+    "huggingface_hub"
+]
+```
+
+This is the ONLY scenario where `pip_dependencies` should contain anything beyond torch. For pip-installable submodules or submodules with a `requirements.txt`, keep `pip_dependencies` minimal and let the advanced library handle runtime deps at load time.
 
 **Adding `resources`** - set based on spec's "GPU Requirements":
 - "CUDA required" (no MPS/CPU support): `[["cuda"], "has_any"]`

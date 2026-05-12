@@ -25,8 +25,14 @@ Extract:
 
 Before writing any code, read these reference files to understand the correct patterns:
 
-**Primary node reference** (in-process deferred-import pattern with HuggingFace model selection):
-- `/Users/cjkindel/nodes/temp/griptape-nodes-sam-audio-library/griptape_nodes_sam_audio_library/sam_segment_audio_node.py`
+**Primary node reference** (in-process deferred-import pattern with HuggingFace model selection + SuccessFailureNode + AsyncResult):
+- `/Users/cjkindel/nodes/griptape-nodes-void-library/griptape_nodes_void_library/void_node.py`
+
+If the path above does not exist, search the workspace for any existing OS-model library node to use as a reference:
+```bash
+find /Users/cjkindel/nodes -maxdepth 4 -name "*_library_advanced.py" 2>/dev/null | head -5
+```
+Then read a sibling node `.py` from the same package directory as a fallback reference.
 
 **Standard library nodes for your domain** (read 2-3 relevant ones):
 - Image nodes: `grep -r "class.*SuccessFailureNode" /Users/cjkindel/nodes/griptape-nodes-library-standard/griptape_nodes_library/image/ --include="*.py" -l`
@@ -63,6 +69,22 @@ model_repo_id, _ = self._model_param.get_repo_revision()
 Use `HuggingFaceRepoParameter` by default. Only use `HuggingFaceRepoVariantParameter` or `HuggingFaceRepoFileParameter` when the spec describes single-repo/multi-variant or per-file selection. Never use a plain dropdown for HF repo IDs.
 
 Note: `get_repo_revision()` returns a `(repo_id, revision)` tuple. Always unpack it as `repo_id, _ = ...`.
+
+**Resolving checkpoint filenames at runtime**: If the model loads via `hf_hub_download(repo_id, filename=...)` (rather than `from_pretrained`) and the filename is not predictable (e.g., includes a benchmark score, version hash, or other opaque encoding like `sapiens_1b_goliath_best_goliath_AP_639_torchscript.pt2`), do NOT hardcode filenames per repo. List the repo's contents at runtime and match by extension:
+
+```python
+from huggingface_hub import HfApi, hf_hub_download
+
+def resolve_checkpoint(repo_id: str, suffix: str = ".pt2") -> str:
+    """Download the single checkpoint file matching `suffix` from the repo."""
+    files = HfApi().list_repo_files(repo_id)
+    matches = [f for f in files if f.endswith(suffix)]
+    if len(matches) != 1:
+        raise RuntimeError(f"Expected exactly one '{suffix}' file in {repo_id}, found {matches}")
+    return hf_hub_download(repo_id=repo_id, filename=matches[0])
+```
+
+This keeps the node resilient to upstream filename changes.
 
 **Seed** - any input named `seed` in the spec MUST use `SeedParameter` regardless of what type the spec table says. Never create a raw `Parameter(name="seed", ...)`. The `SeedParameter` adds both a `randomize_seed` bool and a `seed` int as a unit:
 ```python
@@ -278,17 +300,21 @@ class <NodeClassName>(SuccessFailureNode):
 
 ## 5. Handle Artifact Types
 
-**All URL artifact types store their path in `.value`** -- there is no `.url` attribute. Never use `urllib`, `requests`, or `open()` directly; always use `File` to read artifact data so macro paths like `{outputs}/file.mp4` are resolved correctly.
+**URL artifacts store their path in `.value` as a string.** Raw artifacts (`ImageArtifact`, `AudioArtifact`) store raw bytes in `.value`. Never use `urllib`, `requests`, or `open()` directly for URL artifacts; always use `File` to read them so macro paths like `{outputs}/file.mp4` are resolved correctly.
+
+`File()` only accepts `str`, not `bytes`. Branch on the artifact type to avoid a pyright error:
 
 ```python
+from griptape.artifacts import ImageArtifact, ImageUrlArtifact
 from griptape_nodes.files.file import File
 
-media_bytes = File(artifact.value).read_bytes()
+def _artifact_to_bytes(artifact: ImageArtifact | ImageUrlArtifact) -> bytes:
+    if isinstance(artifact, ImageUrlArtifact):
+        return File(artifact.value).read_bytes()
+    return artifact.value  # ImageArtifact already holds bytes
 ```
 
-This pattern works for `ImageUrlArtifact`, `AudioUrlArtifact`, and `VideoUrlArtifact` identically.
-
-**Note**: `VideoArtifact` does not exist -- only `VideoUrlArtifact`.
+The same branch applies to `AudioArtifact`/`AudioUrlArtifact`. `VideoArtifact` does not exist -- only `VideoUrlArtifact` -- so video inputs always use `File(artifact.value).read_bytes()` with no branch.
 
 **Reading image inputs**:
 ```python
@@ -298,7 +324,10 @@ from griptape_nodes.files.file import File
 image_artifact = self.parameter_values.get("image")
 if not isinstance(image_artifact, (ImageArtifact, ImageUrlArtifact)):
     raise ValueError("image is required")
-image_bytes = File(image_artifact.value).read_bytes()
+if isinstance(image_artifact, ImageUrlArtifact):
+    image_bytes = File(image_artifact.value).read_bytes()
+else:
+    image_bytes = image_artifact.value  # ImageArtifact.value is bytes
 ```
 
 **Reading audio inputs**:
@@ -311,7 +340,10 @@ from griptape_nodes.files.file import File
 audio_artifact = self.parameter_values.get("audio")
 if not isinstance(audio_artifact, (AudioArtifact, AudioUrlArtifact)):
     raise ValueError("audio is required")
-audio_bytes = File(audio_artifact.value).read_bytes()
+if isinstance(audio_artifact, AudioUrlArtifact):
+    audio_bytes = File(audio_artifact.value).read_bytes()
+else:
+    audio_bytes = audio_artifact.value
 waveform, sample_rate = torchaudio.load(io.BytesIO(audio_bytes))
 ```
 
