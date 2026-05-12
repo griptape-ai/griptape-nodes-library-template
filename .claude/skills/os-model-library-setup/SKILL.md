@@ -88,7 +88,7 @@ The `[project]` `name` field should become the library package name in the form 
 
 Also update `[tool.hatch.build.targets.wheel]` packages to point to the new package dir name (`griptape_nodes_library_<dependency_name>`) instead of `example_nodes_template`.
 
-Read the current pyproject.toml first, then make the minimal changes: update `name`, `description`, and `authors` (replace the template placeholder `{ name = "Your Name", email = "you@example.com" }` with `{ name = "Griptape", email = "hello@griptape.ai" }`).
+Read the current pyproject.toml first, then make the minimal changes: update `name`, `description`, and `authors` (replace the template placeholder `{ name = "Your Name", email = "you@example.com" }` with `{ name = "Griptape, Inc.", email = "hello@griptape.ai" }`, matching the convention used by other first-party libraries like `griptape-nodes-void-library`). The manifest JSON's `metadata.author` field should be the string `"Griptape, Inc."` (also already shown in the manifest template below).
 
 Also add the submodule path to the `exclude` list in `[tool.ruff]` (the section already exists in the template):
 
