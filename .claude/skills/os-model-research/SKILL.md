@@ -14,7 +14,7 @@ Analyze an open-source model repository and produce a structured spec file that 
 
 Extract from `$ARGUMENTS`:
 - **OS model repo URL**: e.g. `https://github.com/facebookresearch/sam3`
-- **Library repo path**: e.g. `/Users/me/nodes/griptape-nodes-sam3-library`
+- **Library repo path**: e.g. `/Users/me/nodes/griptape-nodes-library-sam3`
 
 If either is missing, stop and ask the user.
 
@@ -116,7 +116,7 @@ For each node, determine:
 
 From the model name and repo:
 - **Library Name**: human-readable, e.g. `"Griptape Nodes SAM3 Library"`
-- **Package Dir Name**: Python-safe snake_case, e.g. `griptape_nodes_sam3_library`
+- **Package Dir Name**: Python-safe snake_case in the form `griptape_nodes_library_<dependency_name>`, e.g. `griptape_nodes_library_sam3` (NOT `griptape_nodes_sam3_library` -- the prefix is `griptape_nodes_library_`, not a `_library` suffix). The repo dir on disk follows the same pattern: `griptape-nodes-library-<dependency_name>`, e.g. `griptape-nodes-library-sam3`.
 - **Submodule Name**: the repo name as-is or simplified, e.g. `sam3`
 - **Tags**: based on domain (e.g. `["Griptape", "AI", "Image", "Segmentation"]`)
 - **Categories**: one or two, based on what node types are created, with appropriate colors and icons
@@ -163,7 +163,7 @@ Write the complete spec to `<library-repo-path>/.scratch/os-model-spec-<model-na
 
 ## Library Configuration
 - **Library Name**: <e.g., "Griptape Nodes SAM3 Library">
-- **Package Dir Name**: <e.g., griptape_nodes_sam3_library>
+- **Package Dir Name**: <e.g., griptape_nodes_library_sam3>
 - **Submodule Name**: <e.g., sam3>
 - **Tags**: [<tag1>, <tag2>, ...]
 - **Categories**:

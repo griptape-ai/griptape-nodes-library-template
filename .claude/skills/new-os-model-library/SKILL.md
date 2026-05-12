@@ -12,8 +12,10 @@ This skill orchestrates the full creation of a Griptape Nodes library for an ope
 
 Input: `$ARGUMENTS` should contain the OS model repo URL and the absolute path to the library repo (already created from `griptape-nodes-library-template`), e.g.:
 ```
-https://github.com/facebookresearch/sam3 /Users/me/nodes/griptape-nodes-sam3-library
+https://github.com/facebookresearch/sam3 /Users/me/nodes/griptape-nodes-library-sam3
 ```
+
+The library repo dir name MUST follow the convention `griptape-nodes-library-<dependency_name>` (e.g., `griptape-nodes-library-sam3`, `griptape-nodes-library-corridorkey`). The inner package dir is `griptape_nodes_library_<dependency_name>` (e.g., `griptape_nodes_library_sam3`). Do NOT use the older `griptape-nodes-<name>-library` form.
 
 ## Phase 1: Research the OS Model Repo
 
@@ -95,7 +97,7 @@ Use the Skill tool to invoke it. When it completes, report back:
 
 After the subagent completes, verify in the library repo:
 - `example_nodes_template/` no longer exists
-- The package directory (e.g., `griptape_nodes_sam3_library/`) exists
+- The package directory (e.g., `griptape_nodes_library_sam3/`) exists
 - A `.gitmodules` file exists at the repo root
 - The manifest JSON is inside the package directory (not at repo root)
 - The manifest JSON contains an `advanced_library_path` field
