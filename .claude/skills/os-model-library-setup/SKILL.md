@@ -16,7 +16,7 @@ Read the spec file at `$ARGUMENTS`.
 
 Extract:
 - `Library Name` (e.g., "Griptape Nodes SAM3 Library")
-- `Package Dir Name` (e.g., `griptape_nodes_sam3_library`)
+- `Package Dir Name` (e.g., `griptape_nodes_library_sam3`). The convention is `griptape_nodes_library_<dependency_name>` (the prefix is `griptape_nodes_library_`, NOT a `_library` suffix). The repo dir on disk is `griptape-nodes-library-<dependency_name>` (e.g., `griptape-nodes-library-sam3`). If the spec still uses the older `griptape_nodes_<name>_library` form, rewrite it to the new convention before proceeding.
 - `Submodule Name` (e.g., `sam3`)
 - `Repo URL` (the OS model GitHub URL)
 - `Submodule branch` (from Advanced Library Notes)
@@ -84,11 +84,11 @@ After checking out the desired commit, the parent repo will record the new SHA. 
 
 Edit `pyproject.toml` to update the package name, description, and include the package:
 
-The `[project]` `name` field should become the library package name (hyphenated form), e.g., `griptape-nodes-sam3-library`.
+The `[project]` `name` field should become the library package name in the form `griptape-nodes-library-<dependency_name>` (kebab-case form of the package dir), e.g., `griptape-nodes-library-sam3`. Do NOT use the older `griptape-nodes-<name>-library` form.
 
-Also update `[tool.hatch.build.targets.wheel]` packages to point to the new package dir name instead of `example_nodes_template`.
+Also update `[tool.hatch.build.targets.wheel]` packages to point to the new package dir name (`griptape_nodes_library_<dependency_name>`) instead of `example_nodes_template`.
 
-Read the current pyproject.toml first, then make the minimal changes: update `name`, `description`.
+Read the current pyproject.toml first, then make the minimal changes: update `name`, `description`, and `authors` (replace the template placeholder `{ name = "Your Name", email = "you@example.com" }` with `{ name = "Griptape", email = "hello@griptape.ai" }`).
 
 Also add the submodule path to the `exclude` list in `[tool.ruff]` (the section already exists in the template):
 
@@ -138,9 +138,9 @@ build/
 
 ## 10. Create the Advanced Library File
 
-Create `<package-dir>/<library_short_name>_library_advanced.py`. The `library_short_name` is the package dir name with `griptape_nodes_` prefix and `_library` suffix removed (e.g., `griptape_nodes_sam3_library` -> `sam3`).
+Create `<package-dir>/<library_short_name>_library_advanced.py`. The `library_short_name` is the package dir name with the `griptape_nodes_library_` prefix removed (e.g., `griptape_nodes_library_sam3` -> `sam3`, `griptape_nodes_library_corridorkey` -> `corridorkey`).
 
-**The class name** preserves the product's original casing from the spec's "Model Info > Name" or "Submodule Name" field, plus `LibraryAdvanced`. Do NOT lowercase-then-PascalCase the package dir name -- that destroys camel-cased product names (e.g., `CorridorKey` -> wrong: `Corridorkey`, right: `CorridorKey`; `BiRefNet` -> wrong: `Birefnet`, right: `BiRefNet`). Examples: `griptape_nodes_sam3_library` + product `SAM3` -> `SAM3LibraryAdvanced`; `griptape_nodes_corridorkey_library` + product `CorridorKey` -> `CorridorKeyLibraryAdvanced`; `griptape_nodes_depth_anything_3_library` + product `DepthAnything3` -> `DepthAnything3LibraryAdvanced`. The file name stays lowercase (`<library_short_name>_library_advanced.py`).
+**The class name** preserves the product's original casing from the spec's "Model Info > Name" or "Submodule Name" field, plus `LibraryAdvanced`. Do NOT lowercase-then-PascalCase the package dir name -- that destroys camel-cased product names (e.g., `CorridorKey` -> wrong: `Corridorkey`, right: `CorridorKey`; `BiRefNet` -> wrong: `Birefnet`, right: `BiRefNet`). Examples: `griptape_nodes_library_sam3` + product `SAM3` -> `SAM3LibraryAdvanced`; `griptape_nodes_library_corridorkey` + product `CorridorKey` -> `CorridorKeyLibraryAdvanced`; `griptape_nodes_library_depth_anything_3` + product `DepthAnything3` -> `DepthAnything3LibraryAdvanced`. The file name stays lowercase (`<library_short_name>_library_advanced.py`).
 
 **The import name** is the main Python package name from the spec's "Main Package Name" field.
 
