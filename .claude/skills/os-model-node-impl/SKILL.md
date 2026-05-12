@@ -445,13 +445,15 @@ Common issues to watch for:
 
 Write `<library-root>/README.md`. The README must be complete and accurate -- no placeholder text.
 
-Before writing, fetch the latest Griptape Nodes release version from GitHub:
+Before writing, fetch the latest Griptape Nodes release version from GitHub. Prefer the `gh` CLI; fall back to WebFetch only if `gh` is unavailable:
 
 ```
-WebFetch: https://github.com/griptape-ai/griptape-nodes/releases/latest
+gh release view --repo griptape-ai/griptape-nodes --json tagName -q .tagName
 ```
 
-Extract the version tag (e.g., `0.77.5`) from the page. Use that as the minimum engine version in the Requirements section.
+(Fallback: `WebFetch: https://github.com/griptape-ai/griptape-nodes/releases/latest`.)
+
+Strip the leading `v` if present (e.g., `v0.84.0` -> `0.84.0`). Use that as the minimum engine version in the Requirements section.
 
 Use this structure (modeled on https://github.com/griptape-ai/griptape-nodes-depth-anything-3-library):
 

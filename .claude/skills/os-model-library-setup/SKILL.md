@@ -140,7 +140,7 @@ build/
 
 Create `<package-dir>/<library_short_name>_library_advanced.py`. The `library_short_name` is the package dir name with `griptape_nodes_` prefix and `_library` suffix removed (e.g., `griptape_nodes_sam3_library` -> `sam3`).
 
-**The class name** is the PascalCase version of the library short name plus `LibraryAdvanced` (e.g., `Sam3LibraryAdvanced`).
+**The class name** preserves the product's original casing from the spec's "Model Info > Name" or "Submodule Name" field, plus `LibraryAdvanced`. Do NOT lowercase-then-PascalCase the package dir name -- that destroys camel-cased product names (e.g., `CorridorKey` -> wrong: `Corridorkey`, right: `CorridorKey`; `BiRefNet` -> wrong: `Birefnet`, right: `BiRefNet`). Examples: `griptape_nodes_sam3_library` + product `SAM3` -> `SAM3LibraryAdvanced`; `griptape_nodes_corridorkey_library` + product `CorridorKey` -> `CorridorKeyLibraryAdvanced`; `griptape_nodes_depth_anything_3_library` + product `DepthAnything3` -> `DepthAnything3LibraryAdvanced`. The file name stays lowercase (`<library_short_name>_library_advanced.py`).
 
 **The import name** is the main Python package name from the spec's "Main Package Name" field.
 
@@ -318,13 +318,15 @@ If post-install patches are needed (from the spec's "Post-install patches needed
 
 ## 11. Rewrite the Manifest JSON
 
-Before writing the manifest, fetch the latest Griptape Nodes release version from GitHub:
+Before writing the manifest, fetch the latest Griptape Nodes release version from GitHub. Prefer the `gh` CLI; fall back to WebFetch only if `gh` is unavailable:
 
 ```
-WebFetch: https://github.com/griptape-ai/griptape-nodes/releases/latest
+gh release view --repo griptape-ai/griptape-nodes --json tagName -q .tagName
 ```
 
-Extract the version tag (e.g., `0.77.5`) and use it as the `engine_version` below.
+(Fallback: `WebFetch: https://github.com/griptape-ai/griptape-nodes/releases/latest`.)
+
+Strip the leading `v` if present (e.g., `v0.84.0` -> `0.84.0`) and use it as the `engine_version` below.
 
 Write the new manifest JSON to `<package-dir>/griptape-nodes-library.json`. Use this structure:
 
