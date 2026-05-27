@@ -69,7 +69,7 @@ print(f'Synced {len(deps)} dependencies to $(LIBRARY_JSON)')"
 
 .PHONY: install
 install: ## Install all dependencies.
-	@make install/all
+	@$(MAKE) --no-print-directory install/all
 
 .PHONY: install/core
 install/core: deps/sync ## Install core dependencies.
@@ -93,7 +93,7 @@ format: ## Format project.
 
 .PHONY: fix
 fix: ## Fix project.
-	@make format
+	@$(MAKE) --no-print-directory format
 	@uv run ruff check --fix --unsafe-fixes
 
 .PHONY: check
