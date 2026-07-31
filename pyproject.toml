@@ -1,6 +1,6 @@
 [project]
 name = "example_nodes_template"
-version = "0.1.0"
+version = "0.2.0"
 description = "Template for Users to create Custom Libraries and Nodes"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 readme = "README.md"
