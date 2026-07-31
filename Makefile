@@ -1,15 +1,30 @@
 SHELL := /bin/bash
 
 LIBRARY_JSON := griptape-nodes-library.json
+PYPROJECT := pyproject.toml
 
 .PHONY: version/get
 version/get: ## Get version.
 	@jq -r '.metadata.library_version' $(LIBRARY_JSON)
 
+.PHONY: version/write
+version/write: ## Write version to the library JSON and pyproject.toml. Usage: make version/write v=1.2.3
+	@if [[ -z "$(v)" ]]; then echo "version/write requires v=<version>" >&2; exit 1; fi
+	@set -e; \
+	trap 'rm -f $(LIBRARY_JSON).tmp $(PYPROJECT).tmp' EXIT; \
+	jq --indent 4 --arg v "$(v)" '.metadata.library_version = $$v' $(LIBRARY_JSON) > $(LIBRARY_JSON).tmp; \
+	awk -v v="$(v)" ' \
+		/^\[/ { project = ($$0 ~ /^\[project\][[:space:]]*$$/) } \
+		project && !done && /^version[[:space:]]*=/ { print "version = \"" v "\""; done = 1; next } \
+		{ print } \
+		END { if (!done) { print "no version field in the [project] table" > "/dev/stderr"; exit 1 } }' \
+		$(PYPROJECT) > $(PYPROJECT).tmp; \
+	mv $(LIBRARY_JSON).tmp $(LIBRARY_JSON); \
+	mv $(PYPROJECT).tmp $(PYPROJECT)
+
 .PHONY: version/set
 version/set: ## Set version. Usage: make version/set v=1.2.3
-	@jq --arg v "$(v)" '.metadata.library_version = $$v' $(LIBRARY_JSON) > $(LIBRARY_JSON).tmp
-	@mv $(LIBRARY_JSON).tmp $(LIBRARY_JSON)
+	@$(MAKE) --no-print-directory version/write v="$(v)"
 	@$(MAKE) --no-print-directory version/commit
 
 .PHONY: version/patch
@@ -17,8 +32,7 @@ version/patch: ## Bump patch version.
 	@CURRENT=$$($(MAKE) --no-print-directory version/get); \
 	IFS='.' read -r major minor patch <<< "$$CURRENT"; \
 	NEW_VERSION="$${major}.$${minor}.$$((patch + 1))"; \
-	jq --arg v "$$NEW_VERSION" '.metadata.library_version = $$v' $(LIBRARY_JSON) > $(LIBRARY_JSON).tmp; \
-	mv $(LIBRARY_JSON).tmp $(LIBRARY_JSON); \
+	$(MAKE) --no-print-directory version/write v="$$NEW_VERSION"; \
 	echo "Bumped to $$NEW_VERSION"
 	@$(MAKE) --no-print-directory version/commit
 
@@ -27,8 +41,7 @@ version/minor: ## Bump minor version.
 	@CURRENT=$$($(MAKE) --no-print-directory version/get); \
 	IFS='.' read -r major minor patch <<< "$$CURRENT"; \
 	NEW_VERSION="$${major}.$$((minor + 1)).0"; \
-	jq --arg v "$$NEW_VERSION" '.metadata.library_version = $$v' $(LIBRARY_JSON) > $(LIBRARY_JSON).tmp; \
-	mv $(LIBRARY_JSON).tmp $(LIBRARY_JSON); \
+	$(MAKE) --no-print-directory version/write v="$$NEW_VERSION"; \
 	echo "Bumped to $$NEW_VERSION"
 	@$(MAKE) --no-print-directory version/commit
 
@@ -37,14 +50,13 @@ version/major: ## Bump major version.
 	@CURRENT=$$($(MAKE) --no-print-directory version/get); \
 	IFS='.' read -r major minor patch <<< "$$CURRENT"; \
 	NEW_VERSION="$$((major + 1)).0.0"; \
-	jq --arg v "$$NEW_VERSION" '.metadata.library_version = $$v' $(LIBRARY_JSON) > $(LIBRARY_JSON).tmp; \
-	mv $(LIBRARY_JSON).tmp $(LIBRARY_JSON); \
+	$(MAKE) --no-print-directory version/write v="$$NEW_VERSION"; \
 	echo "Bumped to $$NEW_VERSION"
 	@$(MAKE) --no-print-directory version/commit
 
 .PHONY: version/commit
 version/commit: ## Commit version.
-	@git add $(LIBRARY_JSON)
+	@git add $(LIBRARY_JSON) $(PYPROJECT)
 	@git commit -m "chore: bump v$$($(MAKE) --no-print-directory version/get)"
 
 .PHONY: version/publish

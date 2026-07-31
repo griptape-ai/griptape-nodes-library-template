@@ -59,7 +59,7 @@ The CI workflow runs `make check` on every pull request and push to `main`. PRs 
 
 ## Releases
 
-Library versions follow [semantic versioning](https://semver.org/). The version is stored in the library JSON file under `metadata.library_version`.
+Library versions follow [semantic versioning](https://semver.org/). The version is stored in two places, which the version targets keep in sync: the library JSON file under `metadata.library_version`, and `pyproject.toml` under `project.version`. The library JSON is the source of truth — `make version/get` reads it.
 
 To check the current version:
 
