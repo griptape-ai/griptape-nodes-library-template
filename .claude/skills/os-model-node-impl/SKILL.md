@@ -26,18 +26,26 @@ Extract:
 Before writing any code, read these reference files to understand the correct patterns:
 
 **Primary node reference** (in-process deferred-import pattern with HuggingFace model selection + SuccessFailureNode + AsyncResult):
-- `/Users/cjkindel/nodes/griptape-nodes-void-library/griptape_nodes_void_library/void_node.py`
 
-If the path above does not exist, search the workspace for any existing OS-model library node to use as a reference:
+Locate the void library node using the configured workspace directory:
 ```bash
-find /Users/cjkindel/nodes -maxdepth 4 -name "*_library_advanced.py" 2>/dev/null | head -5
+WORKSPACE=$(gtn config show workspace_directory)
+find "$WORKSPACE" -maxdepth 6 -path "*/griptape-nodes-void-library/*/void_node.py" 2>/dev/null | head -3
+```
+
+If that returns nothing, search for any existing OS-model library node as a fallback reference:
+```bash
+find "$WORKSPACE" -maxdepth 6 -name "*_library_advanced.py" 2>/dev/null | head -5
 ```
 Then read a sibling node `.py` from the same package directory as a fallback reference.
 
 **Standard library nodes for your domain** (read 2-3 relevant ones):
-- Image nodes: `grep -r "class.*SuccessFailureNode" /Users/cjkindel/nodes/griptape-nodes-library-standard/griptape_nodes_library/image/ --include="*.py" -l`
-- Audio nodes: `grep -r "class.*SuccessFailureNode" /Users/cjkindel/nodes/griptape-nodes-library-standard/griptape_nodes_library/audio/ --include="*.py" -l`
-- Video nodes: `grep -r "class.*SuccessFailureNode" /Users/cjkindel/nodes/griptape-nodes-library-standard/griptape_nodes_library/video/ --include="*.py" -l`
+```bash
+WORKSPACE=$(gtn config show workspace_directory)
+find "$WORKSPACE" -maxdepth 7 -path "*/griptape-nodes-library-standard/*/image/*.py" 2>/dev/null | head -5   # image nodes
+find "$WORKSPACE" -maxdepth 7 -path "*/griptape-nodes-library-standard/*/audio/*.py" 2>/dev/null | head -5   # audio nodes
+find "$WORKSPACE" -maxdepth 7 -path "*/griptape-nodes-library-standard/*/video/*.py" 2>/dev/null | head -5   # video nodes
+```
 
 Read 1-2 nodes from the relevant domain directory.
 
@@ -107,12 +115,15 @@ seed = self._seed_param.get_seed()
 
 **Output file path** - whenever the node writes an output file (audio, video, image) to disk:
 ```python
+from griptape.artifacts import AudioUrlArtifact  # or ImageUrlArtifact / VideoUrlArtifact
 from griptape_nodes.exe_types.param_components.project_file_parameter import ProjectFileParameter
 # Usage in __init__:
-self._output_file = ProjectFileParameter(self, name="output_file", default_filename="output.wav")
+self._output_file = ProjectFileParameter(node=self, name="output_file", default_filename="output.wav")
 self._output_file.add_parameter()
 # Usage in _run_inference:
-file_dest = self._output_file.build_file()
+dest = self._output_file.build_file()
+saved = dest.write_bytes(media_bytes)  # write_bytes resolves macros; read saved.location AFTER this call
+self.parameter_output_values["output"] = AudioUrlArtifact(saved.location)
 ```
 
 ### Raw Parameter - use for everything else
@@ -360,18 +371,20 @@ video_bytes = File(video_artifact.value).read_bytes()
 
 **Writing media outputs (image, audio, video)**:
 
-Never embed raw media bytes directly in an artifact -- large binaries (~1MB+) will saturate the WebSocket event stream and cause disconnections. Always save to the static file store and emit a URL artifact instead.
+Never embed raw media bytes directly in an artifact -- large binaries (~1MB+) will saturate the WebSocket event stream and cause disconnections. Always write via `ProjectFileParameter` and emit a URL artifact.
+
+`ProjectFileParameter` gives outputs user-configurable paths, consistent project-file organization, and automatic collision handling. Do NOT use `GriptapeNodes.StaticFilesManager().save_static_file(...)` or UUID-based filenames -- that is the deprecated pattern.
+
+Declare the output in `__init__` (see Section 3 for the import and full setup), then write in `_run_inference`:
 
 ```python
-import uuid
-from griptape.artifacts import AudioUrlArtifact  # or ImageUrlArtifact / VideoUrlArtifact
-from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes
-
 # media_bytes: bytes -- whatever your model produced (audio, image, video)
-filename = f"output_{uuid.uuid4().hex[:8]}.flac"  # use the correct extension
-url = GriptapeNodes.StaticFilesManager().save_static_file(media_bytes, filename)
-self.parameter_output_values["output"] = AudioUrlArtifact(url)  # or ImageUrlArtifact / VideoUrlArtifact
+dest = self._output_file.build_file()
+saved = dest.write_bytes(media_bytes)  # macro paths (e.g. {outputs}/file.flac) are resolved here
+self.parameter_output_values["output"] = AudioUrlArtifact(saved.location)  # or ImageUrlArtifact / VideoUrlArtifact
 ```
+
+Always read `saved.location` (the return value of `write_bytes()`), NOT `dest.location` -- the location is not finalized until after `write_bytes()` resolves any macro paths.
 
 Use `output_type="AudioUrlArtifact"` (or `"ImageUrlArtifact"` / `"VideoUrlArtifact"`) on the output `Parameter`. Never use the non-URL artifact variants (`AudioArtifact`, `ImageArtifact`, `VideoArtifact`) for node outputs.
 
