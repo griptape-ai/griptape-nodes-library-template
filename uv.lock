@@ -290,12 +290,10 @@ wheels = [
 name = "example-nodes-template"
 version = "0.1.0"
 source = { editable = "." }
-dependencies = [
-    { name = "griptape-nodes-engine" },
-]
 
 [package.dev-dependencies]
 dev = [
+    { name = "griptape-nodes-engine" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -303,10 +301,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "griptape-nodes-engine", git = "https://github.com/griptape-ai/griptape-nodes-engine?rev=latest" }]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "griptape-nodes-engine", git = "https://github.com/griptape-ai/griptape-nodes-engine?rev=latest" },
     { name = "pyright", specifier = ">=1.1.396" },
     { name = "pytest" },
     { name = "pytest-asyncio", specifier = ">=0.21.0" },
