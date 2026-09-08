@@ -69,6 +69,15 @@ To create your node library and make it importable by other users, please follow
    ]
    ```
 
+   Add packages your nodes import at runtime to `[project] dependencies`, but **do not add
+   `griptape-nodes-engine` there**. The engine is the host that loads your library, so listing it
+   as a runtime dependency means installing your library installs a second engine, which can
+   shadow the one that is actually running. It already sits in `[dependency-groups] dev`, where
+   `uv sync` picks it up by default so your tests and type checking still resolve it.
+
+   Put the engine version your library needs in `engine_version` in your library JSON. That is the
+   value the engine checks when it loads you.
+
 Next, we'll create the nodes that will live in your library.
 
 Each node is it's own python file, written in pure python code!

@@ -90,6 +90,12 @@ Also update `[tool.hatch.build.targets.wheel]` packages to point to the new pack
 
 Read the current pyproject.toml first, then make the minimal changes: update `name`, `description`, and `authors` (replace the template placeholder `{ name = "Your Name", email = "you@example.com" }` with `{ name = "Griptape, Inc.", email = "hello@griptape.ai" }`, matching the convention used by other first-party libraries like `griptape-nodes-void-library`). The manifest JSON's `metadata.author` field should be the string `"Griptape, Inc."` (also already shown in the manifest template below).
 
+**Never add `griptape-nodes-engine` to `[project] dependencies`.** The engine is the host that loads the library, not a package the library pulls in. The template already carries it in `[dependency-groups] dev`, which is where it belongs: `uv sync` installs dev groups by default, so tests and type checking still resolve it, while nothing that installs the library as a package drags in a second engine. A second engine matters because the engine puts a library's virtual environment at the front of its own import path, so that copy can shadow the engine that is actually running.
+
+The engine version the library requires goes in `engine_version` in the manifest, which is the value the engine checks at load time. Do not restate it as a pyproject specifier; the two drift.
+
+This changes once libraries are resolved as packages into their own environments, at which point the engine becomes a normal bounded dependency (`griptape-nodes-engine>=X,<Y`). Until that ships, keep it in the dev group.
+
 Also add the submodule path to the `exclude` list in `[tool.ruff]` (the section already exists in the template):
 
 ```toml
