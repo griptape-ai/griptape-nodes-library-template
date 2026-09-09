@@ -103,6 +103,7 @@ After the subagent completes, verify in the library repo:
 - The manifest JSON contains an `advanced_library_path` field
 - The advanced library `.py` file exists in the package directory
 - `pyproject.toml` has the updated library name
+- `pyproject.toml` does NOT list `griptape-nodes-engine` in `[project] dependencies` (it belongs in `[dependency-groups] dev`, and the required version goes in the manifest's `engine_version`)
 
 **Gate check:** If any of the above are missing, do NOT proceed to Phase 3.
 
