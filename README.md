@@ -73,7 +73,7 @@ To create your node library and make it importable by other users, please follow
    `griptape-nodes-engine` there**. The engine is the host that loads your library, so listing it
    as a runtime dependency means installing your library installs a second engine, which can
    shadow the one that is actually running. It already sits in `[dependency-groups] dev`, where
-   `uv sync` picks it up by default so your tests and type checking still resolve it.
+   `uv sync` picks it up by default so type checking (and any tests you add) still resolve it.
 
    Put the engine version your library needs in `engine_version` in your library JSON. That is the
    value the engine checks when it loads you.
@@ -171,13 +171,26 @@ Nodes have additional methods that can provide functionality at or before runtim
 1. Validate Node
 
 ```
-def validate_node(self) -> list[Exception] | None:
-        """Method called to check that all dependencies, like API keys or models, exist in the environment before running the workflow.
-        The default behavior is to return None. Custom Nodes that have dependencies will overwrite this method in order to return exceptions if the environment isn't set.
-        For example, a node that uses an OpenAI API Key will check that it is set in the environment and that the key is valid.
+def validate_before_node_run(self) -> list[Exception] | None:
+        """Runs on the orchestrator, immediately before this node is dispatched.
+
+        Structural checks only: whether a required value or API key is set, what a parameter declares.
+        Nodes whose heavy dependencies are in `pip_dependencies_exec` can't import them here.
 
         Returns:
             A list of exceptions if any arise, or None. The user can define their own custom exceptions, or use provided python exceptions.
+        """
+```
+
+```
+def validate_in_execution_environment(self) -> list[Exception] | None:
+        """Runs in the process that executes this node, immediately before it processes.
+
+        Execution dependencies are importable here, so checks that need a loaded model or a real
+        input object belong in this method. Inspect only; don't build the thing being checked.
+
+        Returns:
+            A list of exceptions if any arise, or None. Returning exceptions fails the node without running it.
         """
 ```
 
@@ -461,12 +474,12 @@ A `griptape-nodes-library.json` file already exists at the root of this reposito
 ```
 {
     "name": "<Your-Library-Name>",
-    "library_schema_version": "0.3.0",
+    "library_schema_version": "0.14.0",
     "metadata": {
         "author": "<Your-Name>",
         "description": "<Your Description>",
         "library_version": "0.1.0",
-        "engine_version": "0.60.0",
+        "engine_version": "0.103.0",
         "tags": [
             "Griptape",
             "AI",
@@ -485,10 +498,10 @@ A `griptape-nodes-library.json` file already exists at the root of this reposito
             "description": "API keys required by nodes in this library",
             "category": "app_events.on_app_initialization_complete",
             "contents": {
-                "secrets_to_register": [
-                    // Add any API keys your nodes need
-                    // "YOUR_API_KEY"
-                ]
+                "secrets_to_register": {
+                    // Add any API keys your nodes need, mapped to a default value
+                    // "YOUR_API_KEY": ""
+                }
             }
         }
     ],
@@ -522,9 +535,11 @@ A `griptape-nodes-library.json` file already exists at the root of this reposito
 
 Add Python packages your nodes require in the `dependencies.pip_dependencies` array. The engine will automatically install these when loading your library.
 
+Heavy packages that only `process` needs (for example `torch` or `diffusers`) can go in `dependencies.pip_dependencies_exec` instead. The engine installs those into a separate environment used only where nodes execute, so keep `pip_dependencies` to what's needed to import your node modules.
+
 #### Secrets Management
 
-Use the `settings.secrets_to_register` array to automatically register API keys and secrets your nodes need. Users will be prompted to configure these in the Griptape Nodes settings.
+Use the `settings.secrets_to_register` object to automatically register API keys and secrets your nodes need. Users will be prompted to configure these in the Griptape Nodes settings.
 
 #### Categories
 

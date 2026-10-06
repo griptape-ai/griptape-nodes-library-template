@@ -333,7 +333,7 @@ Write the new manifest JSON to `<package-dir>/griptape-nodes-library.json`. Use 
 ```json
 {
     "name": "<Library Name from spec>",
-    "library_schema_version": "0.5.0",
+    "library_schema_version": "0.14.0",
     "advanced_library_path": "<library_short_name>_library_advanced.py",
     "metadata": {
         "author": "Griptape, Inc.",
