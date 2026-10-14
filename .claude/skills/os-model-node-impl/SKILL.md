@@ -88,7 +88,7 @@ def resolve_checkpoint(repo_id: str, suffix: str = ".pt2") -> str:
     files = HfApi().list_repo_files(repo_id)
     matches = [f for f in files if f.endswith(suffix)]
     if len(matches) != 1:
-        raise RuntimeError(f"Expected exactly one '{suffix}' file in {repo_id}, found {matches}")
+        raise NodeError(f"Expected exactly one '{suffix}' file in {repo_id}, found {len(matches)}. Check the repo id.")
     return hf_hub_download(repo_id=repo_id, filename=matches[0])
 ```
 
@@ -129,9 +129,11 @@ self.parameter_output_values["output"] = AudioUrlArtifact(saved.location)
 ### Raw Parameter - use for everything else
 
 ```python
-from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
+from griptape_nodes.exe_types.core_types import NodeError, Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import SuccessFailureNode
 ```
+
+For error messages, `NodeError`, and routing failures through **Failed**, see the `node-errors` skill.
 
 **Parameter modes**:
 - Input wire only: `allowed_modes={ParameterMode.INPUT}`
@@ -187,7 +189,7 @@ import torch
 
 # Griptape framework imports
 from griptape.artifacts import <relevant artifacts>
-from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
+from griptape_nodes.exe_types.core_types import NodeError, Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import AsyncResult, SuccessFailureNode
 # Required when the node has HuggingFace model selection inputs
 from griptape_nodes.exe_types.param_components.huggingface.huggingface_repo_parameter import HuggingFaceRepoParameter
@@ -334,7 +336,7 @@ from griptape_nodes.files.file import File
 
 image_artifact = self.parameter_values.get("image")
 if not isinstance(image_artifact, (ImageArtifact, ImageUrlArtifact)):
-    raise ValueError("image is required")
+    raise NodeError("Connect an image to 'Image'.")
 if isinstance(image_artifact, ImageUrlArtifact):
     image_bytes = File(image_artifact.value).read_bytes()
 else:
@@ -350,7 +352,7 @@ from griptape_nodes.files.file import File
 
 audio_artifact = self.parameter_values.get("audio")
 if not isinstance(audio_artifact, (AudioArtifact, AudioUrlArtifact)):
-    raise ValueError("audio is required")
+    raise NodeError("Connect audio to 'Audio'.")
 if isinstance(audio_artifact, AudioUrlArtifact):
     audio_bytes = File(audio_artifact.value).read_bytes()
 else:
@@ -365,7 +367,7 @@ from griptape_nodes.files.file import File
 
 video_artifact = self.parameter_values.get("video")
 if not isinstance(video_artifact, VideoUrlArtifact):
-    raise ValueError("video is required")
+    raise NodeError("Connect a video to 'Video'.")
 video_bytes = File(video_artifact.value).read_bytes()
 ```
 
@@ -431,7 +433,7 @@ from griptape.artifacts import AudioArtifact, AudioUrlArtifact
 
 audio = self.parameter_values.get("src_audio")
 if not isinstance(audio, (AudioArtifact, AudioUrlArtifact)):
-    raise ValueError("src_audio is required")
+    raise NodeError("Connect audio to 'Source Audio'.")
 # now pyright knows audio is AudioArtifact | AudioUrlArtifact
 audio_bytes = audio.value
 ```
