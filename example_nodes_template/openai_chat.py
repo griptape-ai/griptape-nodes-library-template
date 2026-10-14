@@ -67,11 +67,20 @@ class OpenAIChat(ControlNode):
         try:
             openai.OpenAI(api_key=result.value).models.list()
         except openai.OpenAIError as e:
-            # Use the provider's own message, and attach the status code when there is one.
-            fields: dict[str, str | int | float | bool] | None = (
-                {"status_code": e.status_code} if isinstance(e, openai.APIStatusError) else None
-            )
-            return [NodeError(getattr(e, "message", str(e)), fields=fields)]
+            # The SDK builds an APIStatusError's `message` from the whole response, as
+            # "Error code: 401 - {...}". Its `body` is the parsed error, so read the provider's own
+            # message from there and attach the body as the response.
+            fields: dict[str, str | int | float | bool] | None = None
+            body: dict[str, Any] | None = None
+            if isinstance(e, openai.APIStatusError):
+                fields = {"status_code": e.status_code}
+                body = e.body if isinstance(e.body, dict) else None
+            message = body.get("message") if body else None
+            return [
+                NodeError(
+                    message if isinstance(message, str) else getattr(e, "message", str(e)), fields=fields, response=body
+                )
+            ]
         return None
 
     def process(self) -> None:

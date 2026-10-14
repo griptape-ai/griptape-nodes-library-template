@@ -64,6 +64,10 @@ raise NodeError(
 When re-raising a caught exception, add `from e`. Use the provider's own message as the message, and
 put the status code and request ID in `fields`.
 
+An SDK exception's `str()` or `.message` often holds the whole response. OpenAI's `APIStatusError`
+message is `Error code: 401 - {'error': {...}}`. Read the provider's message from the parsed body
+(`e.body`) instead, and attach that body as `response`.
+
 **Don't re-wrap** an exception just to add a prefix (`raise RuntimeError(f"Failed: {e}") from e`).
 It adds nothing and replaces the type in logs and tracebacks. Let it propagate.
 
