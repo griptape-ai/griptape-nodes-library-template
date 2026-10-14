@@ -178,7 +178,7 @@ def validate_before_node_run(self) -> list[Exception] | None:
         Nodes whose heavy dependencies are in `pip_dependencies_exec` can't import them here.
 
         Returns:
-            A list of exceptions if any arise, or None. The user can define their own custom exceptions, or use provided python exceptions.
+            A list of exceptions if any arise, or None. Return a `NodeError` for each problem, as described under Error Handling below.
         """
 ```
 
@@ -549,19 +549,38 @@ Organize your nodes into logical categories with custom colors and icons. Use de
 
 ### Error Handling
 
-Always implement proper error handling in your nodes:
+Raise `NodeError` when a node fails. The editor shows the node's name and your message, and anything you attach under **More info**.
 
 ```python
-def process(self) -> None:
-    try:
-        # Your node logic here
-        result = self.do_something()
-        self.set_parameter_value("output", result)
-    except Exception as e:
-        # Log the error and provide helpful feedback
-        logger.error(f"Node failed: {str(e)}")
-        raise RuntimeError(f"Processing failed: {str(e)}")
+from griptape_nodes.exe_types.core_types import NodeError, NodeErrorLink
+
+raise NodeError(
+    "The prompt contains blocked words. Rephrase it and try again.",
+    links=[NodeErrorLink(label="Content policy", url="https://example.com/content-policy")],
+)
 ```
+
+You can also attach `fields` (labelled values a user may quote to support, such as a status code or request ID), `links` (up to three pages that explain the fix), and `response` (the provider's response body, under 16 KB). All three are optional.
+
+```python
+raise NodeError(
+    "The prompt contains blocked words. Rephrase it and try again.",
+    fields={"status_code": 400, "request_id": "req_8f2c41d0"},
+    links=[NodeErrorLink(label="Content policy", url="https://example.com/content-policy")],
+    response={"error": {"code": "content_policy", "message": "The prompt contains blocked words."}},
+)
+```
+
+When you re-raise a caught exception, add `from e` so its traceback stays in the logs.
+
+Write the message for an artist:
+
+- Say which parameter is wrong, using the label the UI shows, and what to do next.
+- Don't start with the node's name. The editor shows it.
+- Don't paste a response or `repr()` into the message. Attach it as `response`.
+- Don't catch an exception just to re-raise it with a prefix. Let it propagate.
+
+See the [error handling guide](https://docs.griptapenodes.com/development/custom_nodes/error_handling/) for more.
 
 ### Logging
 
@@ -580,19 +599,29 @@ def process(self) -> None:
 
 ### Input Validation
 
-Validate inputs before processing:
+Validate inputs before processing. Return one exception per problem, so the editor lists each on its own line:
 
 ```python
+from urllib.parse import quote
+
+from griptape_nodes.exe_types.core_types import NodeError, NodeErrorLink
+
 def validate_before_node_run(self) -> list[Exception] | None:
     errors = []
 
     # Check required parameters
     if not self.get_parameter_value("required_param"):
-        errors.append(ValueError("Required parameter is missing"))
+        errors.append(NodeError("'Required Parameter' is empty. Enter a value."))
 
-    # Check API keys
+    # Check API keys. A link starting with "#" opens a place in the editor: this one opens
+    # API Keys & Secrets filtered to the key.
     if not os.getenv("YOUR_API_KEY"):
-        errors.append(ValueError("YOUR_API_KEY environment variable not set"))
+        errors.append(
+            NodeError(
+                "YOUR_API_KEY is not set. Add it in Settings → API Keys & Secrets, then run the node again.",
+                links=[NodeErrorLink(label="Add the API key", url=f"#settings-secrets?filter={quote('YOUR_API_KEY')}")],
+            )
+        )
 
     return errors if errors else None
 ```
@@ -638,6 +667,9 @@ Parameter(
 Use the SecretsManager for API keys:
 
 ```python
+from urllib.parse import quote
+
+from griptape_nodes.exe_types.core_types import NodeError, NodeErrorLink
 from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes
 
 class MyNode(DataNode):
@@ -646,7 +678,10 @@ class MyNode(DataNode):
     def _validate_api_key(self) -> str:
         api_key = GriptapeNodes.SecretsManager().get_secret(self.API_KEY_NAME)
         if not api_key:
-            raise ValueError(f"Missing {self.API_KEY_NAME}")
+            raise NodeError(
+                f"{self.API_KEY_NAME} is not set. Add it in Settings → API Keys & Secrets, then run the node again.",
+                links=[NodeErrorLink(label="Add the API key", url=f"#settings-secrets?filter={quote(self.API_KEY_NAME)}")],
+            )
         return api_key
 ```
 
@@ -717,6 +752,20 @@ class MyProcessingNode(SuccessFailureNode):
             )
             self._handle_failure_exception(e)
 ```
+
+`_handle_failure_exception` follows the **Failed** output if one is connected, and raises the exception otherwise. Every failure path needs it, including failures you detect yourself, not only caught exceptions. Setting the status and returning leaves a node that ends quietly, with nothing in the error panel, when **Failed** isn't connected:
+
+```python
+if not source_path:
+    error = NodeError("Connect a file to 'Source'.")
+    self._set_status_results(was_successful=False, result_details=str(error))
+    self._handle_failure_exception(error)
+    return
+```
+
+- Call `_set_status_results` before `_handle_failure_exception`, and `return` after it.
+- Don't `raise` again after it, or a connected **Failed** output can't catch the failure.
+- Only fail on the run path. Never raise from `after_value_set`, button callbacks, or previews.
 
 ### Asynchronous Processing
 

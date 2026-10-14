@@ -1,14 +1,19 @@
 from typing import Any
+from urllib.parse import quote
 
 import openai
 from griptape.events import TextChunkEvent
 from griptape.structures import Agent
 from griptape.utils import Stream
-from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
+from griptape_nodes.exe_types.core_types import NodeError, NodeErrorLink, Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import ControlNode
+from griptape_nodes.retained_mode.events.secrets_events import GetSecretValueRequest, GetSecretValueResultSuccess
+from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes
 
 
 class OpenAIChat(ControlNode):
+    API_KEY_NAME = "OPENAI_API_KEY"
+
     def __init__(self, name: str, metadata: dict[str, Any] | None = None, **kwargs) -> None:
         node_metadata = {"category": "ControlNodes", "description": "An example node with dependencies"}
         if metadata:
@@ -36,23 +41,38 @@ class OpenAIChat(ControlNode):
             )
         )
 
-    # This node makes a call to OpenAI, so it has a dependency. We have to define that method to properly catch it.
+    # This node makes a call to OpenAI, so it needs an API key. Check for it here, before the node runs,
+    # and return the problems. They display when the user tries to run the flow with the node.
     def validate_before_node_run(self) -> list[Exception] | None:
-        # All env values are stored in the SecretsManager. Check if they exist using this method.
-        exceptions = []
+        # Read secrets with a request. It also works when the node runs in a worker.
+        # `should_error_on_not_found=False` returns None for a missing key instead of logging an error,
+        # because reporting it is this method's job.
+        result = GriptapeNodes.handle_request(
+            GetSecretValueRequest(key=self.API_KEY_NAME, should_error_on_not_found=False)
+        )
+        if not (isinstance(result, GetSecretValueResultSuccess) and result.value):
+            # Name the exact setting and where to find it. A link starting with "#" opens a place in the
+            # editor: this one opens API Keys & Secrets filtered to the key.
+            return [
+                NodeError(
+                    f"{self.API_KEY_NAME} is not set. Add it in Settings → API Keys & Secrets, then run the node again.",
+                    links=[
+                        NodeErrorLink(
+                            label="Add the API key", url=f"#settings-secrets?filter={quote(self.API_KEY_NAME)}"
+                        )
+                    ],
+                )
+            ]
+
         try:
-            api_key = self.get_config_value(service="OpenAI", value="OPENAI_API_KEY")
-        except Exception as e:
-            # Add any exceptions to your list to return
-            exceptions.append(e)
-            return exceptions
-        try:
-            client = openai.OpenAI(api_key=api_key)
-            client.models.list()
-        except Exception as e:
-            exceptions.append(e)
-        # if there are exceptions, they will display when the user tries to run the flow with the node.
-        return exceptions if exceptions else None
+            openai.OpenAI(api_key=result.value).models.list()
+        except openai.OpenAIError as e:
+            # Use the provider's own message, and attach the status code when there is one.
+            fields: dict[str, str | int | float | bool] | None = (
+                {"status_code": e.status_code} if isinstance(e, openai.APIStatusError) else None
+            )
+            return [NodeError(getattr(e, "message", str(e)), fields=fields)]
+        return None
 
     def process(self) -> None:
         # All of the current values of a parameter are stored on self.parameter_values
