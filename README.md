@@ -93,6 +93,7 @@ To create nodes for your library, please take a look at our provided examples in
 - [OpenAI Chat (ControlNode with Dependencies)](example_nodes_template/openai_chat.py) - Advanced node with external API integration
 - [Pig Latin Converter](example_nodes_template/pig_latin.py) - Text transformation example
 - [Simple Drawing Canvas (DataNode with Canvas Widget)](example_nodes_template/simple_drawing_canvas_node.py) - Canvas-based widget for drawing and image annotation with retina scaling
+- [Strict Mode example nodes](#strict-mode-example-nodes) - Pairs of nodes, one breaking a strict-mode rule and one following it
 
 ## 📝 Creating Your Nodes
 
@@ -713,6 +714,20 @@ def after_value_set(self, parameter: Parameter, value: Any) -> None:
             self.hide_parameter_by_name("advanced_options")
     return super().after_value_set(parameter, value)
 ```
+
+### Strict Mode Example Nodes
+
+Strict mode names node code that behaves differently when the node runs in a worker. The rules below warn when the node runs in the engine's own process, and fail the run in a worker. The `StrictModeNodes` category has a pair of nodes for each of three rules: one that breaks it, and one that does the same job the right way. The warnings appear in the engine log.
+
+| Rule | Breaks Rule | How to see it | Follows Rule |
+| --- | --- | --- | --- |
+| `graph-access-while-loading` | [Asks about its connections in `before_value_set`](example_nodes_template/graph_access_while_loading_breaks_rule.py) | Set Text, then copy and paste the node or reopen the workflow | [Asks in `after_value_set`, which loading skips](example_nodes_template/graph_access_while_loading_follows_rule.py) |
+| `state-read-bypassing-requests` | [Reads a setting from `GriptapeNodes.ConfigManager()`](example_nodes_template/state_read_bypassing_requests_breaks_rule.py) | Run the node | [Sends a `GetConfigValueRequest`](example_nodes_template/state_read_bypassing_requests_follows_rule.py) |
+| `state-outside-parameters` | [Keeps state an `after_value_set` sets in an attribute](example_nodes_template/state_outside_parameters_breaks_rule.py) | Run the node | [Keeps it in a hidden parameter](example_nodes_template/state_outside_parameters_follows_rule.py) |
+
+An attribute that nothing running the node reads can stay an attribute: list it in `attributes_outside_parameters` on the class. See the [strict mode reference](https://docs.griptapenodes.com/development/custom_nodes/strict_mode/) for every rule.
+
+`tests/test_strict_mode_nodes.py` checks each pair. Run it with `uv run pytest`. The rule checks skip on an engine without these rules.
 
 ### Success/Failure Node Pattern
 
