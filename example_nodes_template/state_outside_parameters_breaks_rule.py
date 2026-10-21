@@ -7,9 +7,10 @@ from griptape_nodes.exe_types.node_types import DataNode
 class StateOutsideParametersBreaksRule(DataNode):
     """Breaks the strict-mode rule `state-outside-parameters`.
 
-    When Result is set, `after_value_set` keeps its word count in an attribute on the node. A
-    reopened workflow, or a worker's copy of the node, never ran that hook, so it has no such
-    attribute. Run it to see the warning. Run it in a worker and the run fails.
+    When Text is edited, `after_value_set` keeps its word count in an attribute on the node. Editing
+    Text shows the warning. A pasted node, a reopened workflow, or a worker's copy never ran that
+    hook, so it reports a Word Count of 0 until Text is edited again. The run doesn't fail; the
+    count is just wrong.
 
     The correct version is `StateOutsideParametersFollowsRule`.
     """
@@ -30,19 +31,9 @@ class StateOutsideParametersBreaksRule(DataNode):
                 name="text",
                 input_types=["str"],
                 type="str",
-                default_value="hello world",
-                tooltip="The text to shout",
-                allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY},
-            )
-        )
-        self.add_parameter(
-            Parameter(
-                name="result",
-                type="str",
-                output_type="str",
                 default_value="",
-                tooltip="The text in capitals",
-                allowed_modes={ParameterMode.OUTPUT},
+                tooltip="The text to count words in",
+                allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY},
             )
         )
         self.add_parameter(
@@ -51,16 +42,16 @@ class StateOutsideParametersBreaksRule(DataNode):
                 type="int",
                 output_type="int",
                 default_value=0,
-                tooltip="How many words Result has",
+                tooltip="How many words Text has",
                 allowed_modes={ParameterMode.OUTPUT},
             )
         )
 
     def after_value_set(self, parameter: Parameter, value: Any) -> None:
-        if parameter.name == "result":
+        # Loading a saved value skips this hook, so a loaded copy keeps the count from __init__.
+        if parameter.name == "text":
             self._word_count = len(str(value).split())
         return super().after_value_set(parameter, value)
 
     def process(self) -> None:
-        self.set_parameter_value("result", str(self.get_parameter_value("text")).upper())
         self.parameter_output_values["word_count"] = self._word_count

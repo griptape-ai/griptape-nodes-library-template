@@ -7,8 +7,9 @@ from griptape_nodes.exe_types.node_types import DataNode
 class StateOutsideParametersFollowsRule(DataNode):
     """Follows the strict-mode rule `state-outside-parameters`.
 
-    When Result is set, `after_value_set` keeps its word count in a hidden parameter. Parameters are
-    saved with the workflow and copied to a worker, so running it reports nothing.
+    When Text is edited, `after_value_set` keeps its word count in a hidden parameter. Parameters are
+    saved with the workflow and copied with the node, so a pasted node, a reopened workflow, and a
+    worker's copy all report the right Word Count, and editing Text reports nothing.
 
     An attribute that nothing running the node reads can stay an attribute instead: list its name
     in `attributes_outside_parameters` on the class.
@@ -30,19 +31,9 @@ class StateOutsideParametersFollowsRule(DataNode):
                 name="text",
                 input_types=["str"],
                 type="str",
-                default_value="hello world",
-                tooltip="The text to shout",
-                allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY},
-            )
-        )
-        self.add_parameter(
-            Parameter(
-                name="result",
-                type="str",
-                output_type="str",
                 default_value="",
-                tooltip="The text in capitals",
-                allowed_modes={ParameterMode.OUTPUT},
+                tooltip="The text to count words in",
+                allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY},
             )
         )
         self.add_parameter(
@@ -51,7 +42,7 @@ class StateOutsideParametersFollowsRule(DataNode):
                 type="int",
                 output_type="int",
                 default_value=0,
-                tooltip="How many words Result has",
+                tooltip="How many words Text has",
                 allowed_modes={ParameterMode.OUTPUT},
             )
         )
@@ -67,10 +58,9 @@ class StateOutsideParametersFollowsRule(DataNode):
         )
 
     def after_value_set(self, parameter: Parameter, value: Any) -> None:
-        if parameter.name == "result":
+        if parameter.name == "text":
             self.set_parameter_value("cached_word_count", len(str(value).split()))
         return super().after_value_set(parameter, value)
 
     def process(self) -> None:
-        self.set_parameter_value("result", str(self.get_parameter_value("text")).upper())
         self.parameter_output_values["word_count"] = self.get_parameter_value("cached_word_count")

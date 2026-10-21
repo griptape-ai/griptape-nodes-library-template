@@ -100,16 +100,32 @@ async def test_a_node_reports_only_the_rule_it_shows(node_type: str) -> None:
 
 
 @requires_the_rules
-@pytest.mark.parametrize("node_type", ["StateOutsideParametersBreaksRule", "StateOutsideParametersFollowsRule"])
-@pytest.mark.asyncio
-async def test_both_word_counts_match_in_process(node_type: str) -> None:
-    node = _create(node_type)
+def test_editing_text_on_the_state_outside_parameters_breaking_node_warns() -> None:
+    node = _create("StateOutsideParametersBreaksRule")
 
-    result = await _run(node)
+    with _scope() as scope:
+        _set(node.name, "text", "one two three")
+
+    assert [(violation.rule_id, violation.severity.value) for violation in scope.violations] == [
+        (STATE_OUTSIDE_PARAMETERS, "warning")
+    ]
+
+
+@pytest.mark.parametrize(
+    ("node_type", "expected_count"),
+    [("StateOutsideParametersBreaksRule", 0), ("StateOutsideParametersFollowsRule", 3)],
+)
+@pytest.mark.asyncio
+async def test_a_pasted_copy_reports_the_word_count_only_when_it_is_kept_in_a_parameter(
+    node_type: str, expected_count: int
+) -> None:
+    node = _create(node_type)
+    _set(node.name, "text", "one two three")
+
+    result = await _run(_paste(node.name))
 
     assert isinstance(result, ExecuteNodeResultSuccess), result.result_details
-    assert result.parameter_output_values["result"] == "HELLO WORLD"
-    assert result.parameter_output_values["word_count"] == 2
+    assert result.parameter_output_values["word_count"] == expected_count
 
 
 def _create(node_type: str) -> BaseNode:
@@ -132,9 +148,10 @@ async def _run(node: BaseNode) -> ResultPayload:
     return await current_engine().ahandle_request(ExecuteNodeRequest(node_name=node.name))
 
 
-def _paste(node_name: str) -> None:
+def _paste(node_name: str) -> BaseNode:
     """Copy the node and paste it, which applies its saved values the way reopening a workflow does."""
     engine = current_engine()
+    before = set(engine.object_manager.get_filtered_subset(type=BaseNode))
     with engine.context_manager.flow(FLOW_NAME):
         copied = engine.handle_request(SerializeSelectedNodesToCommandsRequest(nodes_to_serialize=[[node_name, "0"]]))
         assert isinstance(copied, SerializeSelectedNodesToCommandsResultSuccess), copied.result_details
@@ -145,6 +162,8 @@ def _paste(node_name: str) -> None:
             )
         )
     assert isinstance(pasted, DeserializeSelectedNodesFromCommandsResultSuccess), pasted.result_details
+    (pasted_name,) = set(engine.object_manager.get_filtered_subset(type=BaseNode)) - before
+    return engine.node_manager.get_node_by_name(pasted_name)
 
 
 def _scope() -> AbstractContextManager[StrictModeScope]:

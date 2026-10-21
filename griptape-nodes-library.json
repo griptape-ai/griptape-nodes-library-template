@@ -158,7 +158,7 @@
             "file_path": "example_nodes_template/state_outside_parameters_breaks_rule.py",
             "metadata": {
                 "category": "StrictModeNodes",
-                "description": "Breaks state-outside-parameters: keeps state a hook sets in an attribute. Run it to see the warning.",
+                "description": "Breaks state-outside-parameters: keeps state a hook sets in an attribute. Edit Text to see the warning.",
                 "display_name": "State Outside Parameters (Breaks Rule)"
             }
         },
