@@ -43,6 +43,14 @@
                 "description": "Example nodes of Data Type",
                 "icon": "Truck"
             }
+        },
+        {
+            "StrictModeNodes": {
+                "color": "border-yellow-500",
+                "title": "StrictModeNodes",
+                "description": "Example nodes that break a strict-mode rule, each beside one that follows it",
+                "icon": "ShieldAlert"
+            }
         }
     ],
     "nodes": [
@@ -107,6 +115,60 @@
                 "category": "DataNodes",
                 "description": "Example canvas-based widget for drawing annotations on images",
                 "display_name": "Simple Drawing Canvas"
+            }
+        },
+        {
+            "class_name": "GraphAccessWhileLoadingBreaksRule",
+            "file_path": "example_nodes_template/graph_access_while_loading_breaks_rule.py",
+            "metadata": {
+                "category": "StrictModeNodes",
+                "description": "Breaks graph-access-while-loading: asks about its connections while it loads. Paste it to see the warning.",
+                "display_name": "Graph Access While Loading (Breaks Rule)"
+            }
+        },
+        {
+            "class_name": "GraphAccessWhileLoadingFollowsRule",
+            "file_path": "example_nodes_template/graph_access_while_loading_follows_rule.py",
+            "metadata": {
+                "category": "StrictModeNodes",
+                "description": "Follows graph-access-while-loading: asks about its connections only when edited.",
+                "display_name": "Graph Access While Loading (Follows Rule)"
+            }
+        },
+        {
+            "class_name": "StateReadBypassingRequestsBreaksRule",
+            "file_path": "example_nodes_template/state_read_bypassing_requests_breaks_rule.py",
+            "metadata": {
+                "category": "StrictModeNodes",
+                "description": "Breaks state-read-bypassing-requests: reads a setting through a manager. Run it to see the warning.",
+                "display_name": "State Read Bypassing Requests (Breaks Rule)"
+            }
+        },
+        {
+            "class_name": "StateReadBypassingRequestsFollowsRule",
+            "file_path": "example_nodes_template/state_read_bypassing_requests_follows_rule.py",
+            "metadata": {
+                "category": "StrictModeNodes",
+                "description": "Follows state-read-bypassing-requests: reads a setting with a request.",
+                "display_name": "State Read Bypassing Requests (Follows Rule)"
+            }
+        },
+        {
+            "class_name": "StateOutsideParametersBreaksRule",
+            "file_path": "example_nodes_template/state_outside_parameters_breaks_rule.py",
+            "metadata": {
+                "category": "StrictModeNodes",
+                "description": "Breaks state-outside-parameters: keeps state a hook sets in an attribute. Edit Text to see the warning.",
+                "display_name": "State Outside Parameters (Breaks Rule)"
+            }
+        },
+        {
+            "class_name": "StateOutsideParametersFollowsRule",
+            "file_path": "example_nodes_template/state_outside_parameters_follows_rule.py",
+            "metadata": {
+                "category": "StrictModeNodes",
+                "description": "Follows state-outside-parameters: keeps state a hook sets in a hidden parameter.",
+                "display_name": "State Outside Parameters (Follows Rule)"
             }
         }
     ]
