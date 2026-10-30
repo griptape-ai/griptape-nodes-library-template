@@ -147,6 +147,23 @@ check/json: ## Validate JSON files.
 check/changelog: ## Check CHANGELOG.md and the changelog.d entries follow Keep a Changelog.
 	@uv run --no-project python scripts/changelog.py check
 
+# A repo created from this template inherits the template's CHANGELOG.md: its released sections,
+# its pending entries, and an [Unreleased] link into the template repo that every later roll copies.
+.PHONY: changelog/init
+changelog/init: changelog/assert-committed ## Start CHANGELOG.md and changelog.d fresh for a library created from this template.
+	@set -e; \
+	repo=$$(git remote get-url origin 2>/dev/null | sed -nE 's#\.git$$##; s#.*[:/]([^/:@]+/[^/]+)$$#\1#p'); \
+	if [[ -z "$$repo" ]]; then echo "changelog/init needs an origin remote pointing at your GitHub repo." >&2; exit 1; fi; \
+	case "$$repo" in */griptape-nodes-library-template) echo "changelog/init is for a library created from the template, not the template itself." >&2; exit 1;; esac; \
+	url="https://github.com/$$repo"; \
+	root=$$(git rev-list --max-parents=0 HEAD | tail -n 1); \
+	trap 'rm -f CHANGELOG.md.tmp' EXIT; \
+	awk '/^## \[[0-9]/ || /^\[/ { exit } { print }' CHANGELOG.md > CHANGELOG.md.tmp; \
+	echo "[Unreleased]: $$url/compare/$$root...HEAD" >> CHANGELOG.md.tmp; \
+	mv CHANGELOG.md.tmp CHANGELOG.md; \
+	find changelog.d -type f ! -name README.md ! -name '.*' -delete; \
+	echo "CHANGELOG.md now compares $$url from $$root. Commit it with changelog.d."
+
 .PHONY: changelog
 changelog: ## Print [Unreleased] as the next version will show it, changelog.d entries folded in.
 	@uv run --no-project python scripts/changelog.py render
