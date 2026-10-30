@@ -77,6 +77,9 @@ To create your node library and make it importable by other users, please follow
 
    Put the engine version your library needs in `engine_version` in your library JSON. That is the
    value the engine checks when it loads you.
+3. Run `make changelog/init` and commit the result. `CHANGELOG.md` and `changelog.d/` come from the
+   template, so this drops the template's release history and pending entries and points the
+   `[Unreleased]` link at your repo. See [CONTRIBUTING.md](CONTRIBUTING.md#changelog).
 
 Next, we'll create the nodes that will live in your library.
 
