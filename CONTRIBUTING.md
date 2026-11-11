@@ -14,6 +14,78 @@ To install all dependencies including core and extras:
 make install
 ```
 
+### Dev and engine environments
+
+Developer tools and the engine each keep their own environment:
+
+| Environment | Location | Owner and purpose |
+| --- | --- | --- |
+| `.venv-dev` | Repository root | Developer tools: IDE interpreter, tests, linting and type checking. The `make install` targets create it. |
+| `.venv` | Beside the library JSON | Runtime dependencies the engine installs from `pip_dependencies` when it loads the library. |
+| `.venv-exec` | Beside the library JSON | Only if the library declares `pip_dependencies_exec`. The engine installs those and uses them only where nodes execute. |
+
+The dev group includes `griptape-nodes-engine` and its dependencies. The engine puts the
+library's `.venv` site-packages at the front of its import path, so if dev tooling lands there,
+those copies shadow the running engine's own packages. The engine reports this as
+`ShadowedEnginePackagesProblem` and loads the library as FLAWED. Keeping dev tooling in
+`.venv-dev` keeps it off the engine's import path.
+
+The Makefile sets `UV_PROJECT_ENVIRONMENT=.venv-dev`, so `make` targets use the right
+environment. A plain `uv sync` or `uv run` installs into `.venv`, so set it yourself when you run
+`uv` directly:
+
+```bash
+UV_PROJECT_ENVIRONMENT=.venv-dev uv run pytest
+```
+
+### Moving dev tooling out of `.venv`
+
+If the `.venv` beside the library JSON holds dev tooling, from a plain `uv sync` or a Makefile
+without the `.venv-dev` setting:
+
+1. Run `make install/dev` from the repository root to create `.venv-dev`.
+2. Select `.venv-dev` as your IDE's project interpreter (see below). Update any test, debug or
+   run configuration that references `.venv` explicitly.
+3. Close terminals with `.venv` activated, or run `deactivate` in them.
+4. Stop Griptape Nodes and anything else using `.venv`, then delete that `.venv`.
+   This removes every package installed there. Restart Griptape Nodes and let it rebuild the
+   environment when it loads the library.
+5. Run `make check` and `make test`. After registering the library in Griptape Nodes, check
+   that no shadowing problem is reported.
+
+An engine-managed `.venv` that holds only runtime dependencies can stay.
+
+### PyCharm
+
+1. Run `make install/dev` in the repository root.
+2. Open **Settings > Project > Python Interpreter**. The exact labels vary by PyCharm version.
+   Add an existing local interpreter and select `<repo>/.venv-dev/bin/python`. On Windows,
+   select `<repo>\.venv-dev\Scripts\python.exe`.
+3. Set test, debug and Python run configurations to use the project interpreter. Replace any
+   explicit path to `.venv` with it.
+4. Open a fresh terminal and check that any automatically activated environment is `.venv-dev`.
+
+The Makefile's environment setting applies only to commands launched through Make. PyCharm's own
+`uv sync` or `uv run` actions need `UV_PROJECT_ENVIRONMENT=.venv-dev` in their environment. If
+your PyCharm version can't set that, install with `make install/dev` and keep the IDE pointed at
+the `.venv-dev` interpreter.
+
+### VS Code
+
+1. Install the Microsoft Python extension and run `make install/dev` in the repository root.
+2. Open the Command Palette and choose **Python: Select Interpreter**. Select `.venv-dev`, or
+   choose **Enter interpreter path** and browse to `<repo>/.venv-dev/bin/python`. On Windows,
+   select `<repo>\.venv-dev\Scripts\python.exe`.
+3. Check `.vscode/launch.json` and `.vscode/tasks.json`, if present, for explicit `.venv` paths.
+   Python debugging should use the selected interpreter or an explicit `.venv-dev` path. Shell
+   tasks should call Make, or set `UV_PROJECT_ENVIRONMENT=.venv-dev` when invoking `uv`.
+4. Close existing integrated terminals and open a new one so terminal activation picks up the
+   selected interpreter. For the Testing panel, choose **Python: Configure Tests**, select
+   pytest and use `tests` as the test directory.
+
+Selecting `.venv-dev` as the interpreter doesn't redirect a plain `uv sync` or `uv run`; those
+follow `UV_PROJECT_ENVIRONMENT`. Use Make targets, or set it for those commands.
+
 ## Makefile Targets
 
 Run `make` with no arguments to see all available targets.
@@ -34,6 +106,12 @@ make check/lint     # ruff check
 make check/types    # pyright
 make check/json     # validate JSON files with jq
 make check/changelog  # validate CHANGELOG.md and changelog.d entries
+```
+
+### Tests
+
+```bash
+make test
 ```
 
 ### Fixing Issues
