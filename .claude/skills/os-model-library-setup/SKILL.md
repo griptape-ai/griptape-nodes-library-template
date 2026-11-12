@@ -90,7 +90,7 @@ Also update `[tool.hatch.build.targets.wheel]` packages to point to the new pack
 
 Read the current pyproject.toml first, then make the minimal changes: update `name`, `description`, and `authors` (replace the template placeholder `{ name = "Your Name", email = "you@example.com" }` with `{ name = "Griptape, Inc.", email = "hello@griptape.ai" }`, matching the convention used by other first-party libraries like `griptape-nodes-void-library`). The manifest JSON's `metadata.author` field should be the string `"Griptape, Inc."` (also already shown in the manifest template below).
 
-**Never add `griptape-nodes-engine` to `[project] dependencies`.** The engine is the host that loads the library, not a package the library pulls in. The template already carries it in `[dependency-groups] dev`, which is where it belongs: `uv sync` installs dev groups by default, so tests and type checking still resolve it, while nothing that installs the library as a package drags in a second engine. A second engine matters because the engine puts a library's virtual environment at the front of its own import path, so that copy can shadow the engine that is actually running.
+**Never add `griptape-nodes-engine` to `[project] dependencies`.** The engine is the host that loads the library, not a package the library pulls in. The template already carries it in `[dependency-groups] dev`, which is where it belongs: `make install/dev` installs it into `.venv-dev`, so tests and type checking still resolve it, while nothing that installs the library as a package drags in a second engine. A second engine matters because the engine puts a library's virtual environment at the front of its own import path, so that copy can shadow the engine that is actually running.
 
 The engine version the library requires goes in `engine_version` in the manifest, which is the value the engine checks at load time. Do not restate it as a pyproject specifier; the two drift.
 
@@ -102,6 +102,7 @@ Also add the submodule path to the `exclude` list in `[tool.ruff]` (the section 
 [tool.ruff]
 exclude = [
   ".venv",
+  ".venv-dev",
   "**/node_modules",
   "**/__pycache__",
   "<package_dir>/<submodule_name>",
@@ -112,7 +113,7 @@ And update `[tool.pyright]` to exclude the submodule and suppress missing-import
 
 ```toml
 [tool.pyright]
-exclude = [".venv", "**/node_modules", "**/__pycache__", "**/.*", "templates", "<package_dir>/<submodule_name>"]
+exclude = [".venv", ".venv-dev", "**/node_modules", "**/__pycache__", "**/.*", "templates", "<package_dir>/<submodule_name>"]
 reportMissingImports = false
 reportMissingModuleSource = false
 ```
@@ -127,6 +128,8 @@ Read the current Makefile. Find the line that sets `LIBRARY_JSON` and update it 
 LIBRARY_JSON := <package-dir>/griptape-nodes-library.json
 ```
 
+Leave the `UV_PROJECT_ENVIRONMENT := .venv-dev` and `unexport VIRTUAL_ENV` lines alone. They keep dev tooling out of the `.venv` the engine builds beside the manifest; see "Dev and engine environments" in CONTRIBUTING.md.
+
 ## 9. Update .gitignore
 
 Ensure these entries are present in `.gitignore` (add any that are missing):
@@ -136,6 +139,7 @@ Ensure these entries are present in `.gitignore` (add any that are missing):
 __pycache__/
 *.py[cod]
 .venv/
+.venv-dev/
 .installed_commit
 dist/
 build/

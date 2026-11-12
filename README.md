@@ -73,7 +73,12 @@ To create your node library and make it importable by other users, please follow
    `griptape-nodes-engine` there**. The engine is the host that loads your library, so listing it
    as a runtime dependency means installing your library installs a second engine, which can
    shadow the one that is actually running. It already sits in `[dependency-groups] dev`, where
-   `uv sync` picks it up by default so type checking (and any tests you add) still resolve it.
+   `make install/dev` picks it up so type checking (and any tests you add) still resolve it.
+
+   Install dev tooling with `make install/dev`, not a plain `uv sync --group dev`. The Makefile
+   puts it in `.venv-dev`. Plain `uv` would put it in the `.venv` the engine builds beside your
+   library JSON, where its copies of the engine's packages shadow the running engine's, and the
+   library loads as FLAWED. See [CONTRIBUTING.md](CONTRIBUTING.md#dev-and-engine-environments).
 
    Put the engine version your library needs in `engine_version` in your library JSON. That is the
    value the engine checks when it loads you.
@@ -730,7 +735,7 @@ Strict mode names node code that behaves differently when the node runs in a wor
 
 An attribute that nothing running the node reads can stay an attribute: list it in `attributes_outside_parameters` on the class. See the [strict mode reference](https://docs.griptapenodes.com/development/custom_nodes/strict_mode/) for every rule.
 
-`tests/test_strict_mode_nodes.py` checks each pair. Run it with `uv run pytest`. The rule checks skip on an engine without these rules.
+`tests/test_strict_mode_nodes.py` checks each pair. Run it with `make test`. The rule checks skip on an engine without these rules.
 
 ### Success/Failure Node Pattern
 
@@ -874,6 +879,9 @@ images = self.get_parameter_list_value("images")  # Always returns list
 - Check that all required dependencies are listed in the JSON
 - Verify Python file paths are correct relative to the JSON file
 - Ensure class names match exactly between Python files and JSON
+- If the engine reports `ShadowedEnginePackagesProblem` and marks the library FLAWED, dev tooling
+  was installed into the library's `.venv`. See
+  [CONTRIBUTING.md](CONTRIBUTING.md#moving-dev-tooling-out-of-venv)
 
 #### Missing API Keys
 

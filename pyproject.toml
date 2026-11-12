@@ -43,9 +43,11 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.pyright]
+# .venv-dev, not .venv: the dev group lives there, while .venv holds only the runtime
+# dependencies the engine installs from the library JSON. See CONTRIBUTING.md for why.
 venvPath = "."
-venv = ".venv"
+venv = ".venv-dev"
 include = ["."]
-exclude = [".venv", "**/node_modules", "**/__pycache__", "**/.*", "templates"]
+exclude = [".venv", ".venv-dev", "**/node_modules", "**/__pycache__", "**/.*", "templates"]
 pythonVersion = "3.12"
 reportIncompatibleMethodOverride = false
