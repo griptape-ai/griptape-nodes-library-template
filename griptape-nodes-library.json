@@ -171,5 +171,19 @@
                 "display_name": "State Outside Parameters (Follows Rule)"
             }
         }
+    ],
+    "workflow_nodes": [
+        {
+            "node_type": "IntroduceYourself",
+            "workflow_path": "workflows/introduce_yourself.py",
+            "metadata": {
+                "category": "ControlNodes",
+                "description": "Takes a first name, a last name, and an age, and returns a short introduction.",
+                "display_name": "Introduce Yourself"
+            }
+        }
+    ],
+    "workflows": [
+        "workflows/templates/introduce_yourself_in_pig_latin.py"
     ]
 }

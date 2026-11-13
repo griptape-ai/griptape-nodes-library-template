@@ -474,6 +474,24 @@ This template includes two complete widget examples:
 
 For comprehensive guidance on custom widgets, including advanced patterns and integration techniques, see the [Custom Widget Components Guide](https://docs.griptapenodes.com/en/latest/developing_nodes/comprehensive_guide/#custom-widget-components) in the official documentation.
 
+## 📖 Documenting Your Library
+
+Docs live in a `docs/` folder next to your library's JSON file. Users read them in the editor, and the engine serves them to agents. They ship with the library and need no hosting.
+
+```
+docs/
+  index.md             # your library's overview page (the README stands in without it)
+  guides/              # any pages about the library as a whole, in any folders you like
+  nodes/               # one page per node, named after its class name or its display name
+  workflow_nodes/      # one page per workflow node
+  workflows/           # one page per workflow template
+  .agents/skills/      # skills for agents that use your library
+```
+
+A node with no page still gets one, built from its description and parameters, so you can write pages only where they help. This template documents a few of its nodes, its workflow node, and its template. Start with [docs/guides/writing-your-own-docs.md](docs/guides/writing-your-own-docs.md).
+
+Docs for people working on the library's code, such as how to add a model, go somewhere else, like `dev/docs/`, so they don't show up in the editor.
+
 ## 📋 Library Configuration
 
 ### Update your library JSON file
