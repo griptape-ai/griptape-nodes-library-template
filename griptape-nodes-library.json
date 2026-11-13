@@ -15,6 +15,7 @@
             "pip_dependencies": []
         }
     },
+    "advanced_library_path": "example_nodes_template/example_tools.py",
     "widgets": [
         {
             "name": "AnglePicker",

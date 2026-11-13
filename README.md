@@ -485,10 +485,11 @@ docs/
   nodes/               # one page per node, named after its class name or its display name
   workflow_nodes/      # one page per workflow node
   workflows/           # one page per workflow template
+  tools/               # one page per MCP tool your library gives agents
   .agents/skills/      # skills for agents that use your library
 ```
 
-A node with no page still gets one, built from its description and parameters, so you can write pages only where they help. This template documents a few of its nodes, its workflow node, and its template. Start with [docs/guides/writing-your-own-docs.md](docs/guides/writing-your-own-docs.md).
+A node with no page still gets one, built from its description and parameters, so you can write pages only where they help. This template documents a few of its nodes, its workflow node, its template, and its MCP tool (`example_nodes_template/example_tools.py`). Start with [docs/guides/writing-your-own-docs.md](docs/guides/writing-your-own-docs.md).
 
 Docs for people working on the library's code, such as how to add a model, go somewhere else, like `dev/docs/`, so they don't show up in the editor.
 
