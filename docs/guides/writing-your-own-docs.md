@@ -48,7 +48,7 @@ A template's thumbnail is set differently. Put an `image` line in the metadata h
 
 ## MCP tools
 
-A library can hand agents tools of its own. This one offers `TranslateToPigLatinRequest`, defined in `example_nodes_template/example_tools.py`. The Docs panel lists it under **Agent MCP tools**.
+A library can hand agents tools of its own. This one offers `TranslateToPigLatinRequest`, defined in `example_nodes_template/example_tools.py`. The editor offers the library as an MCP server, and the Docs panel lists its tools under **MCP server**.
 
 Without a page, a tool is documented by the request's docstring, the descriptions of its fields, and whether it only reads. Write those for an agent choosing between tools. When you have more to say, add a page in `docs/tools/`. [Translate to pig latin](../tools/TranslateToPigLatinRequest.md) shows one, and its `title` and `description` replace the generated ones.
 
