@@ -40,6 +40,12 @@ A node with no page still gets one, built from its description and the table of 
 
 When a tooltip isn't enough, add a `## Parameters` section to the page with a `###` heading per parameter. Each explanation is shown with that parameter in the table. [Create a Name](../nodes/CreateName.md) does this.
 
+## Images
+
+Keep images in the library, such as `docs/assets/`, and link them with a path relative to the page: `![Alt text](../assets/introduction-workflow.png)`. They load with no network. [Getting started](getting-started.md) has one. Write alt text that says what the picture shows, since agents read it as text.
+
+A template's thumbnail is set differently. Put an `image` line in the metadata header at the top of the template file, with a path relative to that file or a web address. This library's template sets `image = "../../docs/assets/pig-latin-thumbnail.png"`, and the thumbnail shows at the top of the template's page in the editor. Without `image`, the template shows no picture.
+
 ## MCP tools
 
 A library can hand agents tools of its own. This one offers `TranslateToPigLatinRequest`, defined in `example_nodes_template/example_tools.py`. The Docs panel lists it under **Agent MCP tools**.

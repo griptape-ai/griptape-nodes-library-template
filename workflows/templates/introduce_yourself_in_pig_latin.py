@@ -8,6 +8,7 @@
 # node_libraries_referenced = [["Example Library", "0.1.0"]]
 # node_types_used = []
 # description = "Builds a short introduction from a name and an age, then turns it into pig latin."
+# image = "../../docs/assets/pig-latin-thumbnail.png"
 # is_griptape_provided = false
 # is_template = true
 # is_internal = false

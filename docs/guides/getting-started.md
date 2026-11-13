@@ -13,6 +13,8 @@ This builds a workflow that turns a name and an age into a sentence like "Hey! M
 1. Connect `full_name` from **Create a Name** to `full_name` on the introduction, and `age` from **Set Age** to `age`.
 1. Run the introduction node. Its `introduction` output has your sentence.
 
+![Create a Name and Set Age connected to Create an Introduction, which connects to Convert to Pig Latin](../assets/introduction-workflow.png)
+
 Want it in pig latin? Connect `introduction` to a [Convert to Pig Latin](../nodes/control/ConvertToPigLatin.md) node. The finished version is the [Introduce Yourself in Pig Latin](../workflows/introduce_yourself_in_pig_latin.md) template.
 
 ## One node instead of three
