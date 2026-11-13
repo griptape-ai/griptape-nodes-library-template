@@ -8,7 +8,7 @@ A library hands agents a tool in three steps, all in this file:
 2. Handle the request in `get_request_handlers`.
 3. Offer it in `get_mcp_tools`. `read_only=True` tells clients the tool never changes anything.
 
-The tool's docs page is `docs/tools/TranslateToPigLatinRequest.md`, named after the request type.
+The tool's docs page is `docs/mcp_tools/TranslateToPigLatinRequest.md`, named after the request type.
 
 Registered in the library JSON with `"advanced_library_path": "example_nodes_template/example_tools.py"`.
 """

@@ -14,7 +14,7 @@ Docs live in a `docs/` folder next to the library's JSON file. The engine reads 
 | `docs/nodes/` | node in `nodes` | the node's class name (`CreateName.md`), or its display name written with underscores (`set_age.md`) |
 | `docs/workflow_nodes/` | node in `workflow_nodes` | the node type (`IntroduceYourself.md`) |
 | `docs/workflows/` | template in `workflows` | the template's file name without `.py` |
-| `docs/tools/` | MCP tool the library offers agents | the tool's request type (`TranslateToPigLatinRequest.md`) |
+| `docs/mcp_tools/` | MCP tool the library offers agents | the tool's request type (`TranslateToPigLatinRequest.md`) |
 
 Pages can sit in subfolders. This library groups its control nodes in `docs/nodes/control/`, and leaves `CreateName.md` at the top. The folders are your choice. Only the filename matters.
 
@@ -50,7 +50,7 @@ A template's thumbnail is set differently. Put an `image` line in the metadata h
 
 A library can hand agents tools of its own. This one offers `TranslateToPigLatinRequest`, defined in `example_nodes_template/example_tools.py`. The editor offers the library as an MCP server, and the Docs panel lists its tools under **MCP server**.
 
-Without a page, a tool is documented by the request's docstring, the descriptions of its fields, and whether it only reads. Write those for an agent choosing between tools. When you have more to say, add a page in `docs/tools/`. [Translate to pig latin](../tools/TranslateToPigLatinRequest.md) shows one, and its `title` and `description` replace the generated ones.
+Without a page, a tool is documented by the request's docstring, the descriptions of its fields, and whether it only reads. Write those for an agent choosing between tools. When you have more to say, add a page in `docs/mcp_tools/`. [Translate to pig latin](../mcp_tools/TranslateToPigLatinRequest.md) shows one, and its `title` and `description` replace the generated ones.
 
 ## Skills for agents
 

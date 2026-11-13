@@ -485,7 +485,7 @@ docs/
   nodes/               # one page per node, named after its class name or its display name
   workflow_nodes/      # one page per workflow node
   workflows/           # one page per workflow template
-  tools/               # one page per MCP tool your library gives agents
+  mcp_tools/           # one page per MCP tool your library gives agents
   .agents/skills/      # skills for agents that use your library
 ```
 
