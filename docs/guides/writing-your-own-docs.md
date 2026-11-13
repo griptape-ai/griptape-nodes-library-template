@@ -54,4 +54,4 @@ Without a page, a tool is documented by the request's docstring, the description
 
 ## Skills for agents
 
-An agent that builds workflows with your library reads skills in `docs/.agents/skills/`. One folder per skill, each with a `SKILL.md`. This library ships [build-an-introduction](../.agents/skills/build-an-introduction/SKILL.md) as an example. Skills for people or agents working on the library's code don't go here. Keep those in `.agents/skills/` at the top of the repo, and developer docs in `dev/docs/`, so they never show up in the editor.
+An agent that builds workflows with your library reads skills in `docs/.agents/skills/`. The Docs panel lists them under **Skills**, so an artist can read them too. One folder per skill, each with a `SKILL.md`. This library ships [build-an-introduction](../.agents/skills/build-an-introduction/SKILL.md) as an example. Skills for people or agents working on the library's code don't go here. Keep those in `.agents/skills/` at the top of the repo, and developer docs in `dev/docs/`, so they never show up in the editor.
