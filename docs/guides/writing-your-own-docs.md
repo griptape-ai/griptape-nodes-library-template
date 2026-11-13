@@ -18,7 +18,7 @@ Docs live in a `docs/` folder next to the library's JSON file. The engine reads 
 
 Pages can sit in subfolders. This library groups its control nodes in `docs/nodes/control/`, and leaves `CreateName.md` at the top. The folders are your choice. Only the filename matters.
 
-Everything else under `docs/` is about the library as a whole, like this guide. Name the folders however you like. `index.md` is the library's overview page. Without one, the engine shows the README.
+Everything else under `docs/` is about the library as a whole, like this guide. Name the folders however you like. `index.md` is the library's overview page. Without one, the editor shows the README in its place and labels the row **README** instead of **Overview**.
 
 ## Frontmatter
 
