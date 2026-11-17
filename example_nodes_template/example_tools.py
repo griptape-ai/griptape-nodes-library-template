@@ -27,12 +27,12 @@ from griptape_nodes.retained_mode.events.base_events import (
 )
 from griptape_nodes.retained_mode.events.payload_registry import PayloadRegistry
 
+from example_nodes_template.pig_latin import to_pig_latin
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from griptape_nodes.retained_mode.events.base_events import ResultPayload
-
-VOWELS = "aeiou"
 
 
 @dataclass
@@ -81,23 +81,7 @@ class ExampleToolsLibrary(AdvancedNodeLibrary):
             return TranslateToPigLatinResultFailure(
                 result_details="Attempted to translate text into pig latin. Failed because the text was empty."
             )
-        words = [_translate_word(word) for word in request.text.split()]
         return TranslateToPigLatinResultSuccess(
-            translated=" ".join(words),
+            translated=to_pig_latin(request.text),
             result_details="Translated the text into pig latin.",
         )
-
-
-def _translate_word(word: str) -> str:
-    letters = [index for index, character in enumerate(word) if character.isalpha()]
-    if not letters:
-        return word
-
-    start, end = letters[0], letters[-1] + 1
-    core = word[start:end]
-    if core[0].lower() in VOWELS:
-        translated = f"{core}way"
-    else:
-        first_vowel = next((index for index, character in enumerate(core) if character.lower() in VOWELS), len(core))
-        translated = f"{core[first_vowel:]}{core[:first_vowel]}ay"
-    return f"{word[:start]}{translated.lower()}{word[end:]}"

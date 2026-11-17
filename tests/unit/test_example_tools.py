@@ -12,7 +12,7 @@ from example_nodes_template.example_tools import (
 
 @pytest.mark.parametrize(
     ("text", "expected"),
-    [("hello world", "ellohay orldway"), ("apple", "appleway"), ("Hello, world!", "ellohay, orldway!"), ("123", "123")],
+    [("hello world", "ellohay orldway"), ("apple", "appleway"), ("Hello, world!", "Ellohay, orldway!"), ("123", "123")],
 )
 def test_translates_text(text: str, expected: str) -> None:
     result = ExampleToolsLibrary()._handle_translate(TranslateToPigLatinRequest(text=text))
