@@ -1,0 +1,1 @@
+- The template now needs engine 0.110.0 or newer, the first version that shows library docs.
